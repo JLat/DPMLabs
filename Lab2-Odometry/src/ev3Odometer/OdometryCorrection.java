@@ -19,7 +19,7 @@ public class OdometryCorrection extends Thread {
 
 	private static final long CORRECTION_PERIOD = 10;
 	private Odometer odometer;
-	private int xLine, yLine, calibrationCounter;
+	private int xLine = 0, yLine = 0, calibrationCounter;
 
 	// Check to prevent multiple detections of the line, assert if the light
 	// sensor is calibrated to the floor value.
@@ -39,15 +39,13 @@ public class OdometryCorrection extends Thread {
 	}
 
 	// run method (required for Thread)
-	
-	/*
-	 * Assumption made that:
-	 *^ x 
-	 *|
-	 *|
-	 **------> Y
-	 *  are the positive axes directions.
-	 */
+
+	// Assumption made that:
+	// ^ Y
+	// |
+	// |
+	// ------> X
+	// are the positive axes directions.
 
 	public void run() {
 		long correctionStart, correctionEnd;
@@ -85,15 +83,11 @@ public class OdometryCorrection extends Thread {
 				recent.removeFirst();
 				recent.addLast(sample[0] * 100);
 			}
-			// TODO: -Fab:
-			// I don't understand the purpose of this line, if we are 'in' the
-			// line, it would allow check to be equal to true, since the recent
-			// values would be close together.
+
+			// if we are back to values close to the initial wood value, set the
+			// check boolean to true to allow detection of a new line.
 			if (Math.abs(baseline - getAverage(recent)) < 5)
 				check = true;
-
-			// TODO: determine when crossing line while moving (5 is arbitrary
-			// right now)
 
 			// line detection condition
 			if (Math.abs(baseline - getAverage(recent)) > 10 && baseline != 0. && check) {
@@ -103,16 +97,17 @@ public class OdometryCorrection extends Thread {
 				// Current angle of robot in degrees
 				Double theta = odometer.getTheta() * 180 / Math.PI;
 				check = false;
-				// Facing X direction
-				if (theta % 180 < 35 || theta % 180 > 145) {
-					adjustX(theta);
-				} else {
-					// Facing Y direction
+				// Facing Y direction
+				if (theta % 180 < 15 || theta % 180 > 165) {
 					adjustY(theta);
+				} else {
+					// Facing X direction
+					adjustX(theta);
 				}
 			}
 
-			// this ensure the odometry correction occurs only once every period
+			// this ensures the odometry correction occurs only once every
+			// period
 			correctionEnd = System.currentTimeMillis();
 			if (correctionEnd - correctionStart < CORRECTION_PERIOD) {
 				try {
@@ -127,28 +122,34 @@ public class OdometryCorrection extends Thread {
 	}
 
 	public void adjustY(double theta) {
-		// facing in y direction (positive y)
-		if (theta % 360 < 180) { 
+		// facing in the positive Y direction (theta is close to 0)
+		if (theta % 360 < 150) {
 			yLine++;
-			odometer.setY(yLine * 15 - 6);
+
+			// TODO: -Fab: Why are you taking 6 off from Y ? please provide a
+			// comment when it's not obvious.
+
+			// odometer.setY(yLine * 15 -6);
+
+			odometer.setY(yLine * 15);
 		} else {
+			// since theta % 360 > 150, is is close to 180, meaning the robot is
+			// facing the negative Y direction.
 			yLine--;
-			odometer.setY(yLine * 15 - 6);
+			odometer.setY(yLine * 15);
 		}
 	}
 
 	public void adjustX(double theta) {
-		// facing in x direction (positive x)
-		if (theta % 360 < 90 || theta % 360 > 270) { 
+		// facing in the positive X direction (theta is around 90 degrees)
+		if (theta % 360 > 60 && theta % 360 < 120) {
 			xLine++;
-			
-			// TODO: -Fab: Why are you taking 6 off from X ? please provide a comment when it's not oubvious.
-			
-			
-			odometer.setX(xLine * 15 - 6);
+			odometer.setX(xLine * 15);
 		} else {
+			// the robot is facing the negative X direction (theta is around 270
+			// degrees)
 			xLine--;
-			odometer.setX(xLine * 15 - 6);
+			odometer.setX(xLine * 15);
 		}
 	}
 
@@ -156,8 +157,8 @@ public class OdometryCorrection extends Thread {
 	public double getLight() {
 		return (double) sample[0] * 100;
 	}
-	
-	public double getBaseline(){
+
+	public double getBaseline() {
 		return this.baseline;
 	}
 
