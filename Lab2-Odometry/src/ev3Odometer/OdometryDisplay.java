@@ -39,6 +39,9 @@ public class OdometryDisplay extends Thread {
 			t.drawString("Light:          ", 0, 3);
 			t.drawString(formattedDoubleToString(OC.getLight() ,2), 7, 3);
 			
+			t.drawString("baseline:    ", 0, 4);
+			t.drawString(formattedDoubleToString(OC.getBaseline(), 2), 7, 4);
+			
 			
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] { true, true, true });

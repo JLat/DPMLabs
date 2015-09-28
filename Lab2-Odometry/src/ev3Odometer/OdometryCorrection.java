@@ -19,9 +19,14 @@ public class OdometryCorrection extends Thread {
 
 	private static final long CORRECTION_PERIOD = 10;
 	private Odometer odometer;
-	private int xLine, yLine;
-	private boolean check; // Check to prevent multiple detections of the line
-	private double baseline;// Represents the color of the starting floor
+	private int xLine, yLine, calibrationCounter;
+
+	// Check to prevent multiple detections of the line, assert if the light
+	// sensor is calibrated to the floor value.
+	private boolean check, calibrated;
+
+	// Represents the calibrated color value of the starting floor
+	private double baseline, calibrationTemp;//
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
@@ -29,61 +34,83 @@ public class OdometryCorrection extends Thread {
 		sample[0] = 0;
 		check = true;
 		baseline = 0.;
+		calibrationCounter = 0;
+		calibrated = false;
 	}
 
 	// run method (required for Thread)
-
+	
 	/*
-
 	 * Assumption made that:
-	 * 		  ^ x 
-	 * 		  |
-	 * 		  |
-	 * -y <----* 
-	 *  is positive
+	 *^ x 
+	 *|
+	 *|
+	 **------> Y
+	 *  are the positive axes directions.
 	 */
+
 	public void run() {
 		long correctionStart, correctionEnd;
 
 		while (true) {
 
 			correctionStart = System.currentTimeMillis();
-			
-			
-			colorRGBSensor.fetchSample(sample, 0);// Get value from light sensor
-			if (recent.size() <2) //If list isn't full add first 5 values
-				recent.addLast(sample[0]*100);
-			else{ // Next values to be added are the difference between the past value
-				if (baseline ==0.)// If baseline has yet to be set do so
-					baseline = getAverage(recent);
-				recent.removeFirst();
-				recent.addLast(sample[0]*100);
-			}
-			if (Math.abs(baseline - getAverage(recent)) < 2)
-				check = true;
-			
-			// put your correction code here
-			
-			//TODO: determine when crossing line while moving (5 is arbitrary right now)
-			
-			if (Math.abs(baseline - getAverage(recent)) > 5 && baseline != 0. && check){ //Line detected
-				LocalEV3.get().getAudio().systemSound(0); // Play system sound of beeping when line detected
-				Double theta = odometer.getTheta() * 180 / Math.PI; // Current angle of robot in degrees
-				check = false;
-					if (theta % 180 < 35 || theta % 180 > 145){ //Facing X direction
-						adjustX(theta);
-					}
-					else{// Facing X direction 
-						adjustY(theta);
+
+			// Get value from light sensor
+			colorRGBSensor.fetchSample(sample, 0);
+
+			// If the baseline value has not yet been calibrated, do so.
+			if (!calibrated) {
+				if (calibrationCounter < 20) {
+					// 20 data values for the floor have not yet been collected.
+					// Add the recent readings to the temp value;
+					calibrationTemp += sample[0] * 100;
+					calibrationCounter++;
+				} else {
+					// we have successfully collected 20 samples of the wood
+					// floor, the baseline value can now be set to the average
+					// of those values, and the calibrated boolean is set to
+					// true in order to avoid calibrating again.
+					baseline = calibrationTemp / 20;
+					calibrated = true;
 				}
 			}
-			// TODO: Fab:
-			// How about we use the average of the first X readings (eg. the
-			// first second of movement) to set the "brown wood" light value,
-			// then use an offset constant to get the "black line" reading ?
-			// Also I am uncertain that using the sum of three values would be
-			// good in this case, given the fact that the "null value" in this
-			// case is 0.01
+
+			// If list isn't full add first 2 values
+			if (recent.size() < 2)
+				recent.addLast(sample[0] * 100);
+			else {
+				// the list is full, add an new reading to it and remove the
+				// oldest reading.
+				recent.removeFirst();
+				recent.addLast(sample[0] * 100);
+			}
+			// TODO: -Fab:
+			// I don't understand the purpose of this line, if we are 'in' the
+			// line, it would allow check to be equal to true, since the recent
+			// values would be close together.
+			if (Math.abs(baseline - getAverage(recent)) < 5)
+				check = true;
+
+			// TODO: determine when crossing line while moving (5 is arbitrary
+			// right now)
+
+			// line detection condition
+			if (Math.abs(baseline - getAverage(recent)) > 10 && baseline != 0. && check) {
+
+				// Play system sound of beeping when line is detected
+				LocalEV3.get().getAudio().systemSound(0);
+				// Current angle of robot in degrees
+				Double theta = odometer.getTheta() * 180 / Math.PI;
+				check = false;
+				// Facing X direction
+				if (theta % 180 < 35 || theta % 180 > 145) {
+					adjustX(theta);
+				} else {
+					// Facing Y direction
+					adjustY(theta);
+				}
+			}
 
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();
@@ -98,31 +125,42 @@ public class OdometryCorrection extends Thread {
 			}
 		}
 	}
-	public void adjustY(double theta ){
-		if (theta % 360 < 180 ){ // facing in y direction (positive y)
-			yLine ++;
-			odometer.setY(yLine*15 - 6);
-		}
-		else{
-			yLine --;
-			odometer.setY(yLine*15 - 6);
-		}	
-	}
-	public void adjustX(double theta ){
-		if (theta % 360 < 90 || theta % 360 > 270){ // facing in x direction (positive x)
-			xLine ++;
-			odometer.setX(xLine*15 - 6);
-		}
-		else{
-			xLine --;
-			odometer.setX(xLine*15 - 6);
+
+	public void adjustY(double theta) {
+		// facing in y direction (positive y)
+		if (theta % 360 < 180) { 
+			yLine++;
+			odometer.setY(yLine * 15 - 6);
+		} else {
+			yLine--;
+			odometer.setY(yLine * 15 - 6);
 		}
 	}
+
+	public void adjustX(double theta) {
+		// facing in x direction (positive x)
+		if (theta % 360 < 90 || theta % 360 > 270) { 
+			xLine++;
+			
+			// TODO: -Fab: Why are you taking 6 off from X ? please provide a comment when it's not oubvious.
+			
+			
+			odometer.setX(xLine * 15 - 6);
+		} else {
+			xLine--;
+			odometer.setX(xLine * 15 - 6);
+		}
+	}
+
 	// get method to allow access of light sensor reading by other classes
-	public double getLight(){
-		return (double)sample[0] * 100;
+	public double getLight() {
+		return (double) sample[0] * 100;
 	}
-		
+	
+	public double getBaseline(){
+		return this.baseline;
+	}
+
 	public double getAverage(LinkedList<Float> list) {
 		double result = 0;
 		if (list.isEmpty()) {
