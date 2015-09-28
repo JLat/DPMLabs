@@ -28,8 +28,9 @@ public class Lab2 {
 		
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		Odometer odometer = new Odometer(leftMotor,rightMotor, WHEEL_RADIUS, TRACK);
-		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
 		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
+		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t,odometryCorrection);
+
 
 		do {
 			// clear the display
@@ -62,7 +63,7 @@ public class Lab2 {
 			
 			odometer.start();
 			odometryDisplay.start();
-			// odometryCorrection.start();
+			//odometryCorrection.start();
 
 			// spawn a new Thread to avoid SquareDriver.drive() from blocking
 			(new Thread() {

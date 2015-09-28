@@ -13,7 +13,7 @@ import lejos.robotics.SampleProvider;
 public class OdometryCorrection extends Thread {
 
 	EV3ColorSensor colorSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
-	SampleProvider colorRGBSensor = colorSensor.getRGBMode();
+	SampleProvider colorRGBSensor = colorSensor.getRedMode();
 	int sampleSize = colorRGBSensor.sampleSize();
 	float[] sample = new float[sampleSize];
 	private LinkedList<Float> recent = new LinkedList<Float>();
@@ -25,12 +25,19 @@ public class OdometryCorrection extends Thread {
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
 		this.odometer = odometer;
+		sample[0] = 0;
 	}
 
 	// run method (required for Thread)
 
 	/*
-	 * Assumption made that: ^ y | | x <----* is positive
+
+	 * Assumption made that:
+	 * 		  ^ x 
+	 * 		  |
+	 * 		  |
+	 * -y <----* 
+	 *  is positive
 	 */
 	public void run() {
 		long correctionStart, correctionEnd;
@@ -38,25 +45,34 @@ public class OdometryCorrection extends Thread {
 		while (true) {
 
 			correctionStart = System.currentTimeMillis();
-
-			colorRGBSensor.fetchSample(sample, 0);
-
+			
+			
+			colorRGBSensor.fetchSample(sample, 0);// Get value from light sensor
+			if (recent.size() <3) //If list isn't full add first 3 values
+				recent.addLast(sample[0]*100);
+			else{ // Next values to be added are the difference between the past value
+				recent.removeFirst();
+				recent.addLast(recent.getLast() - sample[0]*100);
+			}
 			// We construct recent list of size 5.
-			if (recent.size() < 5)
 				// TODO: Fab:
 				// Why are we adding the sum of three values? why not smooth out
 				// the values instead ?
-
 				// we add to the recent list the sum of three consecutive values
-				recent.addLast(sample[0] + sample[1] + sample[2]);
 
-			else {
-
-				recent.removeFirst();
-
-				recent.addLast(sample[0] + sample[1] + sample[2]);
+			// put your correction code here
+			if (getAverage(recent)>5){ //Line detected
+				LocalEV3.get().getAudio().systemSound(0); // Play system sound of beeping when line detected
+				
+				
+				// Check which line is closer from current position ****FIX***** - Probably should use angle to determine which variable to change
+				if (Math.abs(odometer.getX() % 15) < Math.abs(odometer.getY()%15)){ //Closer to line in X
+					adjustX(odometer.getTheta()/Math.PI*180);
+				}
+				else{// Closer to line in Y
+					adjustY(odometer.getTheta()/Math.PI*180);
+				}
 			}
-
 			// TODO: Fab:
 			// How about we use the average of the first X readings (eg. the
 			// first second of movement) to set the "brown wood" light value,
@@ -64,18 +80,6 @@ public class OdometryCorrection extends Thread {
 			// Also I am uncertain that using the sum of three values would be
 			// good in this case, given the fact that the "null value" in this
 			// case is 0.01
-
-			// Line detected
-			if (getAverage(recent) < 30) {
-
-				LocalEV3.get().getAudio().systemSound(0);
-				// Closer to line in X
-				if (Math.abs(odometer.getX() % 15) < Math.abs(odometer.getY() % 15)) {
-					adjustX(odometer.getTheta() / Math.PI * 180);
-				} else {
-					adjustY(odometer.getTheta() / Math.PI * 180);
-				}
-			}
 
 			// this ensure the odometry correction occurs only once every period
 			correctionEnd = System.currentTimeMillis();
@@ -91,29 +95,32 @@ public class OdometryCorrection extends Thread {
 		}
 	}
 
-	public void adjustX(double theta) {
-		// facing in x direction
-		if (theta % 360 > 180) {
-			xLine++;
-			odometer.setX(xLine * 15);
-		} else {
-			xLine--;
-			odometer.setX(xLine * 15);
+	public void adjustY(double theta ){
+		if (theta % 360 < 180 ){ // facing in y direction (positive y)
+			yLine ++;
+			odometer.setY(yLine*15);
 		}
-
+		else{
+			yLine --;
+			odometer.setY(yLine*15);
+		}	
 	}
-
-	public void adjustY(double theta) {
-		// facing in y direction
-		if (theta % 360 < 90 || theta % 360 > 270) {
-			yLine++;
-			odometer.setX(yLine * 15);
-		} else {
-			yLine--;
-			odometer.setX(yLine * 15);
+	public void adjustX(double theta ){
+		if (theta % 360 < 90 || theta % 360 > 270){ // facing in x direction (positive x)
+			xLine ++;
+			odometer.setX(xLine*15);
+		}
+		else{
+			xLine --;
+			odometer.setX(xLine*15);
 		}
 	}
+	// get method to allow access of light sensor reading by other classes
+		public double getLight(){
+			return (double)sample[0];
+		}
 
+		// Calculate average of entries of the list
 	public double getAverage(LinkedList<Float> list) {
 		double result = 0;
 		if (list.isEmpty()) {
