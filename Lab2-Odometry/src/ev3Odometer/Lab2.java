@@ -62,7 +62,7 @@ public class Lab2 {
 			
 			odometer.start();
 			odometryDisplay.start();
-			//odometryCorrection.start();
+			odometryCorrection.start();
 
 			// spawn a new Thread to avoid SquareDriver.drive() from blocking
 			(new Thread() {

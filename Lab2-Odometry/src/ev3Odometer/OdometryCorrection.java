@@ -51,7 +51,7 @@ public class OdometryCorrection extends Thread {
 			
 			
 			colorRGBSensor.fetchSample(sample, 0);// Get value from light sensor
-			if (recent.size() <5) //If list isn't full add first 5 values
+			if (recent.size() <2) //If list isn't full add first 5 values
 				recent.addLast(sample[0]*100);
 			else{ // Next values to be added are the difference between the past value
 				if (baseline ==0.)// If baseline has yet to be set do so
@@ -63,7 +63,10 @@ public class OdometryCorrection extends Thread {
 				check = true;
 			
 			// put your correction code here
-			if (Math.abs(baseline - getAverage(recent)) > 2 && baseline != 0. && check){ //Line detected
+			
+			//TODO: determine when crossing line while moving (5 is arbitrary right now)
+			
+			if (Math.abs(baseline - getAverage(recent)) > 5 && baseline != 0. && check){ //Line detected
 				LocalEV3.get().getAudio().systemSound(0); // Play system sound of beeping when line detected
 				Double theta = odometer.getTheta() * 180 / Math.PI; // Current angle of robot in degrees
 				check = false;
@@ -95,25 +98,24 @@ public class OdometryCorrection extends Thread {
 			}
 		}
 	}
-
 	public void adjustY(double theta ){
 		if (theta % 360 < 180 ){ // facing in y direction (positive y)
 			yLine ++;
-			odometer.setY(yLine*15);
+			odometer.setY(yLine*15 - 6);
 		}
 		else{
 			yLine --;
-			odometer.setY(yLine*15);
+			odometer.setY(yLine*15 - 6);
 		}	
 	}
 	public void adjustX(double theta ){
 		if (theta % 360 < 90 || theta % 360 > 270){ // facing in x direction (positive x)
 			xLine ++;
-			odometer.setX(xLine*15);
+			odometer.setX(xLine*15 - 6);
 		}
 		else{
 			xLine --;
-			odometer.setX(xLine*15);
+			odometer.setX(xLine*15 - 6);
 		}
 	}
 	// get method to allow access of light sensor reading by other classes
@@ -121,14 +123,14 @@ public class OdometryCorrection extends Thread {
 		return (double)sample[0] * 100;
 	}
 		
-		public double getAverage(LinkedList<Float> list) {
-			double result = 0;
-			if (list.isEmpty()) {
-				return 0;
-			}
-			for (Float i : list) {
-				result += i;
-			}
-			return result / list.size();
+	public double getAverage(LinkedList<Float> list) {
+		double result = 0;
+		if (list.isEmpty()) {
+			return 0;
 		}
+		for (Float i : list) {
+			result += i;
+		}
+		return result / list.size();
+	}
 }
