@@ -6,8 +6,6 @@ import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.port.MotorPort;
-import lejos.hardware.port.Port;
 
 public class Lab2 {
 	
@@ -55,6 +53,7 @@ public class Lab2 {
 			rightMotor.flt();
 			
 			odometer.start();
+			odometryCorrection.start();
 			odometryDisplay.start();
 			
 		} else {

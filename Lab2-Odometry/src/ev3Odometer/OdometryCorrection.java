@@ -5,7 +5,6 @@ package ev3Odometer;
 
 import java.util.LinkedList;
 
-import lejos.hardware.Audio;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
@@ -21,11 +20,15 @@ public class OdometryCorrection extends Thread {
 	private static final long CORRECTION_PERIOD = 10;
 	private Odometer odometer;
 	private int xLine, yLine;
+	private boolean check; // Check to prevent multiple detections of the line
+	private double baseline;// Represents the color of the starting floor
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
 		this.odometer = odometer;
 		sample[0] = 0;
+		check = true;
+		baseline = 0.;
 	}
 
 	// run method (required for Thread)
@@ -48,29 +51,27 @@ public class OdometryCorrection extends Thread {
 			
 			
 			colorRGBSensor.fetchSample(sample, 0);// Get value from light sensor
-			if (recent.size() <3) //If list isn't full add first 3 values
+			if (recent.size() <5) //If list isn't full add first 5 values
 				recent.addLast(sample[0]*100);
 			else{ // Next values to be added are the difference between the past value
+				if (baseline ==0.)// If baseline has yet to be set do so
+					baseline = getAverage(recent);
 				recent.removeFirst();
-				recent.addLast(recent.getLast() - sample[0]*100);
+				recent.addLast(sample[0]*100);
 			}
-			// We construct recent list of size 5.
-				// TODO: Fab:
-				// Why are we adding the sum of three values? why not smooth out
-				// the values instead ?
-				// we add to the recent list the sum of three consecutive values
-
+			if (Math.abs(baseline - getAverage(recent)) < 2)
+				check = true;
+			
 			// put your correction code here
-			if (getAverage(recent)>5){ //Line detected
+			if (Math.abs(baseline - getAverage(recent)) > 2 && baseline != 0. && check){ //Line detected
 				LocalEV3.get().getAudio().systemSound(0); // Play system sound of beeping when line detected
-				
-				
-				// Check which line is closer from current position ****FIX***** - Probably should use angle to determine which variable to change
-				if (Math.abs(odometer.getX() % 15) < Math.abs(odometer.getY()%15)){ //Closer to line in X
-					adjustX(odometer.getTheta()/Math.PI*180);
-				}
-				else{// Closer to line in Y
-					adjustY(odometer.getTheta()/Math.PI*180);
+				Double theta = odometer.getTheta() * 180 / Math.PI; // Current angle of robot in degrees
+				check = false;
+					if (theta % 180 < 35 || theta % 180 > 145){ //Facing X direction
+						adjustX(theta);
+					}
+					else{// Facing X direction 
+						adjustY(theta);
 				}
 			}
 			// TODO: Fab:
@@ -116,19 +117,18 @@ public class OdometryCorrection extends Thread {
 		}
 	}
 	// get method to allow access of light sensor reading by other classes
-		public double getLight(){
-			return (double)sample[0];
-		}
-
-		// Calculate average of entries of the list
-	public double getAverage(LinkedList<Float> list) {
-		double result = 0;
-		if (list.isEmpty()) {
-			return 0;
-		}
-		for (Float i : list) {
-			result += i;
-		}
-		return result / list.size();
+	public double getLight(){
+		return (double)sample[0] * 100;
 	}
+		
+		public double getAverage(LinkedList<Float> list) {
+			double result = 0;
+			if (list.isEmpty()) {
+				return 0;
+			}
+			for (Float i : list) {
+				result += i;
+			}
+			return result / list.size();
+		}
 }

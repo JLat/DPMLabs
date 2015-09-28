@@ -37,7 +37,7 @@ public class OdometryDisplay extends Thread {
 			
 			//Added light sensor to the display
 			t.drawString("Light:          ", 0, 3);
-			t.drawString(formattedDoubleToString(OC.getLight(),2), 7, 3);
+			t.drawString(formattedDoubleToString(OC.getLight() ,2), 7, 3);
 			
 			
 			// get the odometry information
