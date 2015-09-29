@@ -1,4 +1,7 @@
-// Lab2.java
+// Lab2.java - Odmetry
+
+// Fabrice Normandine
+// Joel Lat
 
 package ev3Odometer;
 

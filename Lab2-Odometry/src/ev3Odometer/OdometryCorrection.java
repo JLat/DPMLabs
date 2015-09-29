@@ -33,7 +33,7 @@ public class OdometryCorrection extends Thread {
 	private double baseline, calibrationTemp;
 	
 	//Offset of light sensor and wheel base
-	private static final double SENSOR_OFFSET = 2.5;//
+	private static final double SENSOR_OFFSET = 3.4;//
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
