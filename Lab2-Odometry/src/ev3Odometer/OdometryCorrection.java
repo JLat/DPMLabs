@@ -86,19 +86,19 @@ public class OdometryCorrection extends Thread {
 
 			// if we are back to values close to the initial wood value, set the
 			// check boolean to true to allow detection of a new line.
-			if (Math.abs(baseline - getAverage(recent)) < 3)
+			if (Math.abs(baseline - getAverage(recent)) < 10)
 				check = true;
 
 			// line detection condition
 			if (Math.abs(baseline - getAverage(recent)) > 20 && baseline != 0. && check) {
 
 				// Play system sound of beeping when line is detected
-				LocalEV3.get().getAudio().systemSound(0);
+				LocalEV3.get().getAudio().systemSound(1);
 				// Current angle of robot in degrees
 				Double theta = odometer.getTheta() * 180 / Math.PI;
 				check = false;
 				// Facing Y direction
-				if (theta % 180 < 15 || theta % 180 > 165){
+				if (theta % 180 < 15 || theta % 180 > 165) {
 					adjustY(theta);
 				} else {
 					// Facing X direction
@@ -125,13 +125,12 @@ public class OdometryCorrection extends Thread {
 		// facing in the positive Y direction (theta is close to 0)
 		if (theta % 360 < 30 || theta % 360 > 345) {
 			yLine++;
-			odometer.setY(yLine * 30 - 15);
-			
-			
+			odometer.setY(yLine * 30 - 15 - 2.5);
+
 		} else {
 			// theta is close to 180, meaning the robot is
 			// facing the negative Y direction.
-			odometer.setY(yLine * 30 - 15);
+			odometer.setY(yLine * 30 - 15 + 2.5);
 			yLine--;
 		}
 	}
@@ -140,12 +139,14 @@ public class OdometryCorrection extends Thread {
 		// facing in the positive X direction (theta is around 90 degrees)
 		if (theta % 360 > 60 && theta % 360 < 120) {
 			xLine++;
-			odometer.setX(xLine * 30 - 15);
-			
+			// the last value in the next function is an offset to compensate
+			// for the displacement of the light sensor.
+			odometer.setX(xLine * 30 - 15 - 2.5);
+
 		} else {
 			// the robot is facing the negative X direction (theta is around 270
 			// degrees)
-			odometer.setX(xLine * 30 - 15);
+			odometer.setX(xLine * 30 - 15 + 2.5);
 			xLine--;
 		}
 	}
@@ -158,10 +159,12 @@ public class OdometryCorrection extends Thread {
 	public double getBaseline() {
 		return this.baseline;
 	}
-	public int getXline(){
+
+	public int getXline() {
 		return this.xLine;
 	}
-	public int getYline(){
+
+	public int getYline() {
 		return this.yLine;
 	}
 
