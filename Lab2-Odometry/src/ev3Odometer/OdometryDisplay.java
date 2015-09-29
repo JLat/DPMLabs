@@ -39,8 +39,8 @@ public class OdometryDisplay extends Thread {
 			t.drawString("Light:          ", 0, 3);
 			t.drawString(formattedDoubleToString(OC.getLight() ,2), 7, 3);
 			
-			t.drawString("baseline:    ", 0, 4);
-			t.drawString(formattedDoubleToString(OC.getBaseline(), 2), 7, 4);
+			t.drawString("baseline:       ", 0, 4);
+			t.drawString(formattedDoubleToString(OC.getBaseline(), 2), 10, 4);
 			
 			t.drawString(OC.getXline()+"", 10, 0);
 			t.drawString(OC.getYline()+"", 10, 1);

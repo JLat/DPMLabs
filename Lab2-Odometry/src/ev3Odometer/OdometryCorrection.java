@@ -19,6 +19,8 @@ public class OdometryCorrection extends Thread {
 
 	private static final long CORRECTION_PERIOD = 10;
 	private Odometer odometer;
+	
+	//Number of lines robot has crossed
 	private int xLine = 0, yLine = 0, calibrationCounter;
 
 	// Check to prevent multiple detections of the line, assert if the light
@@ -26,7 +28,11 @@ public class OdometryCorrection extends Thread {
 	private boolean check, calibrated;
 
 	// Represents the calibrated color value of the starting floor
-	private double baseline, calibrationTemp;//
+	
+	private double baseline, calibrationTemp;
+	
+	//Offset of light sensor and wheel base
+	private double sensorOffset = 2.5;//
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
@@ -96,6 +102,7 @@ public class OdometryCorrection extends Thread {
 				LocalEV3.get().getAudio().systemSound(1);
 				// Current angle of robot in degrees
 				Double theta = odometer.getTheta() * 180 / Math.PI;
+				//Ensure that line is not detected multiple times
 				check = false;
 				// Facing Y direction
 				if (theta % 180 < 15 || theta % 180 > 165) {
@@ -122,31 +129,33 @@ public class OdometryCorrection extends Thread {
 	}
 
 	public void adjustY(double theta) {
+		//Sensor offset is to account for difference between the light sensor and the wheel base
 		// facing in the positive Y direction (theta is close to 0)
 		if (theta % 360 < 30 || theta % 360 > 345) {
 			yLine++;
-			odometer.setY(yLine * 30 - 15 - 2.5);
+			odometer.setY(yLine * 30 - 15 -sensorOffset);
 
 		} else {
 			// theta is close to 180, meaning the robot is
 			// facing the negative Y direction.
-			odometer.setY(yLine * 30 - 15 + 2.5);
+			odometer.setY(yLine * 30 - 15 + sensorOffset);
 			yLine--;
 		}
 	}
 
 	public void adjustX(double theta) {
+		//Sensor offset is to account for difference between the light sensor and the wheel base
 		// facing in the positive X direction (theta is around 90 degrees)
 		if (theta % 360 > 60 && theta % 360 < 120) {
 			xLine++;
 			// the last value in the next function is an offset to compensate
 			// for the displacement of the light sensor.
-			odometer.setX(xLine * 30 - 15 - 2.5);
+			odometer.setX(xLine * 30 - 15 -sensorOffset);
 
 		} else {
 			// the robot is facing the negative X direction (theta is around 270
 			// degrees)
-			odometer.setX(xLine * 30 - 15 + 2.5);
+			odometer.setX(xLine * 30 - 15 +sensorOffset);
 			xLine--;
 		}
 	}
@@ -155,7 +164,7 @@ public class OdometryCorrection extends Thread {
 	public double getLight() {
 		return (double) sample[0] * 100;
 	}
-
+	// get method for baseline
 	public double getBaseline() {
 		return this.baseline;
 	}
@@ -167,7 +176,8 @@ public class OdometryCorrection extends Thread {
 	public int getYline() {
 		return this.yLine;
 	}
-
+	
+	//Calculate the average of all values in the list
 	public double getAverage(LinkedList<Float> list) {
 		double result = 0;
 		if (list.isEmpty()) {

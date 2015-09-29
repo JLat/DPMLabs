@@ -9,8 +9,14 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 public class Odometer extends Thread {
 	// robot position
 	private double x, y, theta;
+	
+	//Current and previous readings of the motor's tachometer
 	private int lastTachoL, lastTachoR, nowTachoL, nowTachoR;
+	
+	//Motors of robot
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
+	
+	//Wheel radius and wheel seperation of robot
 	private double WR, WS;
 
 	// odometer update period, in ms
@@ -59,25 +65,23 @@ public class Odometer extends Thread {
 		while (true) {
 			updateStart = System.currentTimeMillis();
 
+			//Distance wheel has travelled
 			double deltaL, deltaR, deltaD;
 
-			// Current facing = theta = 0
 			// get new tachometer readings
 			nowTachoL = leftMotor.getTachoCount();
 			nowTachoR = rightMotor.getTachoCount();
 			// calculate distance traveled for left and right wheel
 			deltaR = WR * (nowTachoR - lastTachoR) * Math.PI / 180;
 			deltaL = WR * (nowTachoL - lastTachoL) * Math.PI / 180;
-			deltaD = (deltaR + deltaL) / 2; // Calculate total distance moved
-			lastTachoL = nowTachoL; // update holder for last tachometer
-									// readings
+			// Calculate total distance moved
+			deltaD = (deltaR + deltaL) / 2; 
+			lastTachoL = nowTachoL; // update holder for last tachometer readings
 			lastTachoR = nowTachoR;
 
 			synchronized (lock) {
-				// don't use the variables x, y, or theta anywhere but here!
-				theta += (deltaL - deltaR) / WS; // update Theta, x and y
-													// according to measured
-													// changes
+				// update theta, x and y according to measured changes
+				theta += (deltaL - deltaR) / WS; 
 				x += deltaD * Math.sin(theta);
 				y += deltaD * Math.cos(theta);
 			}
