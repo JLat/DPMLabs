@@ -17,7 +17,7 @@ public class Odometer extends Thread {
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	
 	//Wheel radius and wheel seperation of robot
-	private double WR, WS;
+	private double wheelRadius, wheelTrack;
 
 	// odometer update period, in ms
 	private static final long ODOMETER_PERIOD = 25;
@@ -42,8 +42,8 @@ public class Odometer extends Thread {
 	public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, double WR, double WS) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
-		this.WR = WR;
-		this.WS = WS;
+		this.wheelRadius = WR;
+		this.wheelTrack = WS;
 		x = 0.0;
 		y = 0.0;
 		theta = 0.0;
@@ -72,8 +72,8 @@ public class Odometer extends Thread {
 			nowTachoL = leftMotor.getTachoCount();
 			nowTachoR = rightMotor.getTachoCount();
 			// calculate distance traveled for left and right wheel
-			deltaR = WR * (nowTachoR - lastTachoR) * Math.PI / 180;
-			deltaL = WR * (nowTachoL - lastTachoL) * Math.PI / 180;
+			deltaR = wheelRadius * (nowTachoR - lastTachoR) * Math.PI / 180;
+			deltaL = wheelRadius * (nowTachoL - lastTachoL) * Math.PI / 180;
 			// Calculate total distance moved
 			deltaD = (deltaR + deltaL) / 2; 
 			lastTachoL = nowTachoL; // update holder for last tachometer readings
@@ -81,7 +81,7 @@ public class Odometer extends Thread {
 
 			synchronized (lock) {
 				// update theta, x and y according to measured changes
-				theta += (deltaL - deltaR) / WS; 
+				theta += (deltaL - deltaR) / wheelTrack; 
 				x += deltaD * Math.sin(theta);
 				y += deltaD * Math.cos(theta);
 			}
@@ -112,7 +112,7 @@ public class Odometer extends Thread {
 				position[2] = theta / Math.PI * 180;// Return the value in
 													// degrees
 		}
-	}
+	}	
 
 	public double getX() {
 		double result;

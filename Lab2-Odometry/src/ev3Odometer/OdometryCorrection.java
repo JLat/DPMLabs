@@ -13,11 +13,13 @@ public class OdometryCorrection extends Thread {
 
 	EV3ColorSensor colorSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	SampleProvider colorRGBSensor = colorSensor.getRedMode();
-	int sampleSize = colorRGBSensor.sampleSize();
-	float[] sample = new float[sampleSize];
+	float[] sample = new float[colorRGBSensor.sampleSize()];
 	private LinkedList<Float> recent = new LinkedList<Float>();
 
 	private static final long CORRECTION_PERIOD = 10;
+	
+	// Difference between basline needed to be counted as a line
+	private static final int LINE_THRESHOLD = 20; 
 	private Odometer odometer;
 	
 	//Number of lines robot has crossed
@@ -25,20 +27,19 @@ public class OdometryCorrection extends Thread {
 
 	// Check to prevent multiple detections of the line, assert if the light
 	// sensor is calibrated to the floor value.
-	private boolean check, calibrated;
+	private boolean lineReset, calibrated;
 
 	// Represents the calibrated color value of the starting floor
-	
 	private double baseline, calibrationTemp;
 	
 	//Offset of light sensor and wheel base
-	private double sensorOffset = 2.5;//
+	private static final double SENSOR_OFFSET = 2.5;//
 
 	// constructor
 	public OdometryCorrection(Odometer odometer) {
 		this.odometer = odometer;
 		sample[0] = 0;
-		check = true;
+		lineReset = true;
 		baseline = 0.;
 		calibrationCounter = 0;
 		calibrated = false;
@@ -93,17 +94,17 @@ public class OdometryCorrection extends Thread {
 			// if we are back to values close to the initial wood value, set the
 			// check boolean to true to allow detection of a new line.
 			if (Math.abs(baseline - getAverage(recent)) < 10)
-				check = true;
+				lineReset = true;
 
 			// line detection condition
-			if (Math.abs(baseline - getAverage(recent)) > 20 && baseline != 0. && check) {
+			if (Math.abs(baseline - getAverage(recent)) > LINE_THRESHOLD && baseline != 0. && lineReset) {
 
 				// Play system sound of beeping when line is detected
-				LocalEV3.get().getAudio().systemSound(1);
+				LocalEV3.get().getAudio().systemSound(0);
 				// Current angle of robot in degrees
 				Double theta = odometer.getTheta() * 180 / Math.PI;
 				//Ensure that line is not detected multiple times
-				check = false;
+				lineReset = false;
 				// Facing Y direction
 				if (theta % 180 < 15 || theta % 180 > 165) {
 					adjustY(theta);
@@ -128,21 +129,23 @@ public class OdometryCorrection extends Thread {
 		}
 	}
 
+	//Adjust Y position when line is detected
 	public void adjustY(double theta) {
 		//Sensor offset is to account for difference between the light sensor and the wheel base
 		// facing in the positive Y direction (theta is close to 0)
 		if (theta % 360 < 30 || theta % 360 > 345) {
 			yLine++;
-			odometer.setY(yLine * 30 - 15 -sensorOffset);
+			odometer.setY(yLine * 30 - 15 - SENSOR_OFFSET);
 
 		} else {
 			// theta is close to 180, meaning the robot is
 			// facing the negative Y direction.
-			odometer.setY(yLine * 30 - 15 + sensorOffset);
+			odometer.setY(yLine * 30 - 15 + SENSOR_OFFSET);
 			yLine--;
 		}
 	}
 
+	//Adjust X position when line is detected
 	public void adjustX(double theta) {
 		//Sensor offset is to account for difference between the light sensor and the wheel base
 		// facing in the positive X direction (theta is around 90 degrees)
@@ -150,12 +153,12 @@ public class OdometryCorrection extends Thread {
 			xLine++;
 			// the last value in the next function is an offset to compensate
 			// for the displacement of the light sensor.
-			odometer.setX(xLine * 30 - 15 -sensorOffset);
+			odometer.setX(xLine * 30 - 15 -SENSOR_OFFSET);
 
 		} else {
 			// the robot is facing the negative X direction (theta is around 270
 			// degrees)
-			odometer.setX(xLine * 30 - 15 +sensorOffset);
+			odometer.setX(xLine * 30 - 15 +SENSOR_OFFSET);
 			xLine--;
 		}
 	}
@@ -169,10 +172,12 @@ public class OdometryCorrection extends Thread {
 		return this.baseline;
 	}
 
+	//get method for XLine
 	public int getXline() {
 		return this.xLine;
 	}
 
+	//get method for YLine
 	public int getYline() {
 		return this.yLine;
 	}
