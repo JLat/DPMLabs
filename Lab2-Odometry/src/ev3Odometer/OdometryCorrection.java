@@ -86,11 +86,11 @@ public class OdometryCorrection extends Thread {
 
 			// if we are back to values close to the initial wood value, set the
 			// check boolean to true to allow detection of a new line.
-			if (Math.abs(baseline - getAverage(recent)) < 5)
+			if (Math.abs(baseline - getAverage(recent)) < 3)
 				check = true;
 
 			// line detection condition
-			if (Math.abs(baseline - getAverage(recent)) > 10 && baseline != 0. && check) {
+			if (Math.abs(baseline - getAverage(recent)) > 20 && baseline != 0. && check) {
 
 				// Play system sound of beeping when line is detected
 				LocalEV3.get().getAudio().systemSound(0);
@@ -98,7 +98,7 @@ public class OdometryCorrection extends Thread {
 				Double theta = odometer.getTheta() * 180 / Math.PI;
 				check = false;
 				// Facing Y direction
-				if (theta % 180 < 15 || theta % 180 > 165) {
+				if (theta % 180 < 15 || theta % 180 > 165){
 					adjustY(theta);
 				} else {
 					// Facing X direction
@@ -123,20 +123,16 @@ public class OdometryCorrection extends Thread {
 
 	public void adjustY(double theta) {
 		// facing in the positive Y direction (theta is close to 0)
-		if (theta % 360 < 150) {
+		if (theta % 360 < 30 || theta % 360 > 345) {
 			yLine++;
-
-			// TODO: -Fab: Why are you taking 6 off from Y ? please provide a
-			// comment when it's not obvious.
-
-			// odometer.setY(yLine * 15 -6);
-
-			odometer.setY(yLine * 15);
+			odometer.setY(yLine * 30 - 15);
+			
+			
 		} else {
-			// since theta % 360 > 150, is is close to 180, meaning the robot is
+			// theta is close to 180, meaning the robot is
 			// facing the negative Y direction.
+			odometer.setY(yLine * 30 - 15);
 			yLine--;
-			odometer.setY(yLine * 15);
 		}
 	}
 
@@ -144,12 +140,13 @@ public class OdometryCorrection extends Thread {
 		// facing in the positive X direction (theta is around 90 degrees)
 		if (theta % 360 > 60 && theta % 360 < 120) {
 			xLine++;
-			odometer.setX(xLine * 15);
+			odometer.setX(xLine * 30 - 15);
+			
 		} else {
 			// the robot is facing the negative X direction (theta is around 270
 			// degrees)
+			odometer.setX(xLine * 30 - 15);
 			xLine--;
-			odometer.setX(xLine * 15);
 		}
 	}
 
@@ -160,6 +157,12 @@ public class OdometryCorrection extends Thread {
 
 	public double getBaseline() {
 		return this.baseline;
+	}
+	public int getXline(){
+		return this.xLine;
+	}
+	public int getYline(){
+		return this.yLine;
 	}
 
 	public double getAverage(LinkedList<Float> list) {

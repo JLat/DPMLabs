@@ -14,7 +14,7 @@ public class SquareDriver {
 		// reset the motors
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] { leftMotor, rightMotor }) {
 			motor.stop();
-			motor.setAcceleration(3000);
+			motor.setAcceleration(500);
 		}
 
 		// wait 5 seconds

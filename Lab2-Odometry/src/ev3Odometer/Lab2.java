@@ -53,7 +53,7 @@ public class Lab2 {
 			rightMotor.flt();
 			
 			odometer.start();
-			odometryCorrection.start();
+			//odometryCorrection.start();
 			odometryDisplay.start();
 			
 		} else {

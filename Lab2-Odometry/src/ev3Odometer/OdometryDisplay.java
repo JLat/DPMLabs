@@ -31,9 +31,9 @@ public class OdometryDisplay extends Thread {
 			displayStart = System.currentTimeMillis();
 
 			// clear the lines for displaying odometry information
-			t.drawString("X:              ", 0, 0);
-			t.drawString("Y:              ", 0, 1);
-			t.drawString("T:              ", 0, 2);
+			t.drawString("X:       ", 0, 0);
+			t.drawString("Y:       ", 0, 1);
+			t.drawString("T:       ", 0, 2);
 			
 			//Added light sensor to the display
 			t.drawString("Light:          ", 0, 3);
@@ -41,6 +41,10 @@ public class OdometryDisplay extends Thread {
 			
 			t.drawString("baseline:    ", 0, 4);
 			t.drawString(formattedDoubleToString(OC.getBaseline(), 2), 7, 4);
+			
+			t.drawString(OC.getXline()+"", 10, 0);
+			t.drawString(OC.getYline()+"", 10, 1);
+			
 			
 			
 			// get the odometry information

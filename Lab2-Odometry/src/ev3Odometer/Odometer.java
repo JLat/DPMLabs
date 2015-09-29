@@ -10,7 +10,7 @@ public class Odometer extends Thread {
 	// robot position
 	private double x, y, theta;
 	private int lastTachoL, lastTachoR, nowTachoL, nowTachoR;
-	private EV3LargeRegulatedMotor rightMotor,leftMotor;
+	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	private double WR, WS;
 
 	// odometer update period, in ms
@@ -20,7 +20,7 @@ public class Odometer extends Thread {
 	private Object lock;
 
 	// default constructor
-	
+
 	public Odometer() {
 		x = 0.0;
 		y = 0.0;
@@ -31,9 +31,9 @@ public class Odometer extends Thread {
 		rightMotor.resetTachoCount();
 		leftMotor.resetTachoCount();
 	}
-	
+
 	// Constructor with motors
-	public Odometer(EV3LargeRegulatedMotor leftMotor,EV3LargeRegulatedMotor rightMotor, double WR, double WS) {
+	public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, double WR, double WS) {
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
 		this.WR = WR;
@@ -46,35 +46,40 @@ public class Odometer extends Thread {
 		lock = new Object();
 		rightMotor.resetTachoCount();
 		leftMotor.resetTachoCount();
+		
+		
 	}
 
 	// run method (required for Thread)
 	public void run() {
 		long updateStart, updateEnd;
-		
-		updateStart = System.currentTimeMillis();
 
+		updateStart = System.currentTimeMillis();
 
 		while (true) {
 			updateStart = System.currentTimeMillis();
-			// put (some of) your odometer code here
-			
+
 			double deltaL, deltaR, deltaD;
-			
-			//Current facing = theta = 0
-			nowTachoL = leftMotor.getTachoCount();//get new tachometer readings
+
+			// Current facing = theta = 0
+			// get new tachometer readings
+			nowTachoL = leftMotor.getTachoCount();
 			nowTachoR = rightMotor.getTachoCount();
-			deltaR = WR*(nowTachoR - lastTachoR) * Math.PI / 180; // calculate distance traveled for left and right wheel
-			deltaL = WR*(nowTachoL - lastTachoL) * Math.PI / 180;
-			deltaD = (deltaR + deltaL)/2; //Calculate total distance moved
-			lastTachoL = nowTachoL; //update holder for last tachometer readings
+			// calculate distance traveled for left and right wheel
+			deltaR = WR * (nowTachoR - lastTachoR) * Math.PI / 180;
+			deltaL = WR * (nowTachoL - lastTachoL) * Math.PI / 180;
+			deltaD = (deltaR + deltaL) / 2; // Calculate total distance moved
+			lastTachoL = nowTachoL; // update holder for last tachometer
+									// readings
 			lastTachoR = nowTachoR;
 
 			synchronized (lock) {
 				// don't use the variables x, y, or theta anywhere but here!
-				theta += (deltaL - deltaR)/ WS; //update Theta, x and y according to measured changes
+				theta += (deltaL - deltaR) / WS; // update Theta, x and y
+													// according to measured
+													// changes
 				x += deltaD * Math.sin(theta);
-				y += deltaD* Math.cos(theta);
+				y += deltaD * Math.cos(theta);
 			}
 
 			// this ensures that the odometer only runs once every period
@@ -96,11 +101,12 @@ public class Odometer extends Thread {
 		// ensure that the values don't change while the odometer is running
 		synchronized (lock) {
 			if (update[0])
-				position[0] = x;	
+				position[0] = x;
 			if (update[1])
 				position[1] = y;
 			if (update[2])
-				position[2] = theta / Math.PI*180;//Return the value in degrees
+				position[2] = theta / Math.PI * 180;// Return the value in
+													// degrees
 		}
 	}
 
