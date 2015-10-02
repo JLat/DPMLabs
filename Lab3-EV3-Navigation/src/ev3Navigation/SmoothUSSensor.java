@@ -4,13 +4,16 @@ import java.util.LinkedList;
 
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.port.Port;
-import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 /*
  * Copyright:
- * This class makes use of our own code from assignments 1 and 2 as well as parts of demo code provided in these assignments.
+ * This class makes use of our own code from assignments 1 and 2 as well as parts of some demo code provided in these assignments.
+ * 
+ * TODO: Fab- Perhaps we could add methods in here to use the distance values and process the turning, but i'm not sure about that.
+ * 
+ * 
  * 
  */
 
@@ -27,18 +30,19 @@ public class SmoothUSSensor extends Thread {
 	// list containing the recent processed distance values.
 	private LinkedList<Integer> recent;
 	private int
-	// original distance
-	rawDistance,
-			// altered distance
-			processedDistance,
-			// list size, greater list size improves smoothness but reduces
-			// robot responsiveness.
-			recentListSize,
-			// previous average of the list before insertion of new data.
-			previousAverage;
-
-	private int plusOffset, minusOffset, upperBound, lowerBound;
-	private int finalDistance;
+		// original distance
+		rawDistance,
+		// altered distance
+		processedDistance,
+		// list size, greater list size improves smoothness but reduces
+		// robot responsiveness.
+		recentListSize,
+		// previous average of the list before insertion of new data.
+		previousAverage,
+		// absolute bounds on the distance value, (set to 0-255) by default.
+		upperBound = 255, lowerBound =0,
+		//offset bound values from previousAverage to the next accept
+		plusOffset, minusOffset;
 
 	public SmoothUSSensor(int recentListSize, int PlusOffset, int MinusOffset, int UpperBound, int LowerBound) {
 
@@ -56,20 +60,20 @@ public class SmoothUSSensor extends Thread {
 
 		SampleProvider usDistance = usSensor.getMode("Distance");
 		// usDistance provides samples from this instance
-		float[] usData = new float[usDistance.sampleSize()];
+		this.usData = new float[usDistance.sampleSize()];
 		// usData is the buffer in which data are returned
 
 	}
 
 	public void run() {
-		int distance;
 		while (true) {
 			// acquire data
 			us.fetchSample(usData, 0);
 
 			// extract from buffer, cast to int
 			this.rawDistance = (int) (usData[0] * 100.0);
-
+			
+			
 			processDistance();
 			
 

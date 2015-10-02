@@ -21,7 +21,23 @@ public class Navigator extends Thread {
 	}
 
 	public void run() {
-		
+		/*
+		 * Algorithm idea: 
+		 * 
+		 * 
+		 * 1) head to the target, move forward the required distance.
+		 * 
+		 * if at any time the robot detects that it is close to a wall:
+		 * 
+		 * 2)- begin a P-type wall-following method until the distance becomes
+		 * great again (or simply that the obstacle is cleared)
+		 * Note: Odometer is active while this happens.
+		 * 
+		 * 3) Use current X and Y to reposition itself to target and begin moving required distance.
+		 * 
+		 *  TODO: Fab- Tell me what you think of this approach.
+		 * 
+		 */
 	}
 
 	// Rotate robot to heading theta
@@ -37,7 +53,7 @@ public class Navigator extends Thread {
 			rotate(theta - currentHeading);
 		else
 			// if not, then turn the other way.
-			rotate((theta-currentHeading) - 360);
+			rotate((theta - currentHeading) - 360);
 	}
 
 	// Rotate robot by angle theta
@@ -58,7 +74,8 @@ public class Navigator extends Thread {
 		navigating = true;
 		dx = x - odometer.getX();
 		dy = y - odometer.getY();
-		// TODO: Fab- corrected this to dy/dx for tan (correct this if I'm wrong.
+		// TODO: Fab- corrected this to dy/dx for tan (correct this if I'm
+		// wrong.
 		turnTo(Math.tan(dy / dx));
 		move(Math.sqrt((Math.pow(dx, 2) + Math.pow(dy, 2))));
 	}
@@ -79,7 +96,7 @@ public class Navigator extends Thread {
 
 	// TODO: Fab- What is this ?
 	private static int convertAngle(double radius, double width, double angle) {
-		
+
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 
