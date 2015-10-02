@@ -9,28 +9,35 @@ public class Navigator extends Thread {
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	private double wheelRadius, wheelTrack;
 
+	// Default Constructor
+	public Navigator(Odometer OD, EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, double WR,
+			double WS) {
+		odometer = OD;
+		this.leftMotor = leftMotor;
+		this.rightMotor = rightMotor;
+		wheelRadius = WR;
+		wheelTrack = WS;
 
-//Default Constructor
-public Navigator (Odometer OD,EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, double WR, double WS){
-	odometer = OD;
-	this.leftMotor = leftMotor;
-	this.rightMotor = rightMotor;
-	wheelRadius = WR;
-	wheelTrack = WS;
-	
-}
-	public void run(){
-		// Not really sure what should be recurring but they said to implement thread so somethings needs to be done
+	}
+
+	public void run() {
+		
 	}
 
 	// Rotate robot to heading theta
 	public void turnTo(double theta) {
+
 		navigating = true;
 		Double currentHeading = odometer.getTheta() % 360;
-		if (Math.abs(currentHeading - theta) < 180)
+
+		// if the absolute value of the difference between our heading and theta
+		// is less than 180, make that turn.
+		if (Math.abs(theta - currentHeading) < 180)
+
 			rotate(theta - currentHeading);
 		else
-			rotate(currentHeading - (theta + 360));
+			// if not, then turn the other way.
+			rotate((theta-currentHeading) - 360);
 	}
 
 	// Rotate robot by angle theta
@@ -42,7 +49,7 @@ public Navigator (Odometer OD,EV3LargeRegulatedMotor leftMotor, EV3LargeRegulate
 	// Move robot forward by set distance
 	public void move(double distance) {
 		leftMotor.rotate(convertDistance(wheelRadius, distance), true);
-		rightMotor.rotate(convertDistance(wheelRadius, distance), true);
+		rightMotor.rotate(convertDistance(wheelRadius, distance), false);
 	}
 
 	// Move robot to location (x,y)
@@ -51,8 +58,9 @@ public Navigator (Odometer OD,EV3LargeRegulatedMotor leftMotor, EV3LargeRegulate
 		navigating = true;
 		dx = x - odometer.getX();
 		dy = y - odometer.getY();
-		turnTo(Math.tan(dx / dy));
-		move(Math.sqrt((Math.pow(dx,2)+ Math.pow(dy,2))));
+		// TODO: Fab- corrected this to dy/dx for tan (correct this if I'm wrong.
+		turnTo(Math.tan(dy / dx));
+		move(Math.sqrt((Math.pow(dx, 2) + Math.pow(dy, 2))));
 	}
 
 	public boolean isNavigating() {
@@ -63,13 +71,15 @@ public Navigator (Odometer OD,EV3LargeRegulatedMotor leftMotor, EV3LargeRegulate
 	public void avoidObstacle() {
 
 	}
-	
-	//From Lab2 - Square Driver
+
+	// From Lab2 - Square Driver
 	private static int convertDistance(double radius, double distance) {
 		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 
+	// TODO: Fab- What is this ?
 	private static int convertAngle(double radius, double width, double angle) {
+		
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 
