@@ -55,6 +55,13 @@ public class Odometer extends Thread {
 		
 		
 	}
+	
+	// Assumption made that:
+		// ^ Y
+		// |
+		// |
+		// ------> X
+		// are the positive axes directions.
 
 	// run method (required for Thread)
 	public void run() {

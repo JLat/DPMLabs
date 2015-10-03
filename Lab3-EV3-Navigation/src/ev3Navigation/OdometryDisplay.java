@@ -9,14 +9,12 @@ import lejos.hardware.lcd.TextLCD;
 public class OdometryDisplay extends Thread {
 	private static final long DISPLAY_PERIOD = 250;
 	private Odometer odometer;
-	private OdometryCorrection OC;
 	private TextLCD t;
 
 	// constructor
-	public OdometryDisplay(Odometer odometer, TextLCD t, OdometryCorrection OC) {
+	public OdometryDisplay(Odometer odometer, TextLCD t) {
 		this.odometer = odometer;
 		this.t = t;
-		this.OC = OC;
 	}
 
 	// run method (required for Thread)
@@ -35,15 +33,6 @@ public class OdometryDisplay extends Thread {
 			t.drawString("Y:       ", 0, 1);
 			t.drawString("T:       ", 0, 2);
 			
-			//Added light sensor to the display
-			t.drawString("Light:          ", 0, 3);
-			t.drawString(formattedDoubleToString(OC.getLight() ,2), 7, 3);
-			
-			t.drawString("baseline:       ", 0, 4);
-			t.drawString(formattedDoubleToString(OC.getBaseline(), 2), 10, 4);
-			
-			t.drawString(OC.getXline()+"", 10, 0);
-			t.drawString(OC.getYline()+"", 10, 1);
 			
 			
 			

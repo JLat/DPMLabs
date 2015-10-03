@@ -25,18 +25,26 @@ public class Lab3 {
 		
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		Odometer odometer = new Odometer(leftMotor,rightMotor, WHEEL_RADIUS, TRACK);
-		OdometryCorrection odometryCorrection = new OdometryCorrection(odometer);
-		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t,odometryCorrection);
+		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
 		Navigator navigator = new Navigator(odometer,leftMotor,rightMotor,WHEEL_RADIUS,TRACK);
 
-
+		t.drawString("Press anything", 0, 0);
 		while(buttonChoice == 0){
 			buttonChoice = Button.waitForAnyPress();
 		}
 			odometer.start();
 			odometryDisplay.start();
-			odometryCorrection.start();
 			navigator.start();
+			
+			double [] destX = {60,30,30,60};
+			double [] destY = {30,30,60,0};
+			
+			for (int i = 0; i < destX.length; i ++){
+				navigator.travelTo(destX[i],destY[i]);
+				//Wait until we are done moving to location
+				while(navigator.isNavigating()){}
+			}
+			
 			
 		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
