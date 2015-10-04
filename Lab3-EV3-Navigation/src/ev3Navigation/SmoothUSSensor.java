@@ -25,7 +25,7 @@ public class SmoothUSSensor extends Thread {
 
 	// this class is to be a wrapper for the US sensor, effectively smoothing
 	// out the values and allowing control of the smoothing from an exterior
-	// class, as well as a mean of getting the "smooth" values
+	// class, as well as a mean of getting the processed value.
 
 	// list containing the recent processed distance values.
 	private LinkedList<Integer> recent;

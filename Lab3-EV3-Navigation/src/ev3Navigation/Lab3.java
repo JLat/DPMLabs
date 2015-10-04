@@ -22,6 +22,8 @@ public class Lab3 {
 	public static void main(String[] args) {
 		int buttonChoice = 0;
 
+		rightMotor.setAcceleration(500);
+		leftMotor.setAcceleration(500);
 		
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		Odometer odometer = new Odometer(leftMotor,rightMotor, WHEEL_RADIUS, TRACK);
