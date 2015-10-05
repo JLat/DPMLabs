@@ -34,6 +34,7 @@ public class OdometryDisplay extends Thread {
 			t.drawString("X:       ", 0, 0);
 			t.drawString("Y:       ", 0, 1);
 			t.drawString("T:       ", 0, 2);
+			t.drawString("USS:     ", 0, 3);
 			
 			
 			
@@ -49,6 +50,7 @@ public class OdometryDisplay extends Thread {
 			for (int i = 0; i < 3; i ++){
 				t.drawString(formattedDoubleToString(Nav.getDestination()[i],2),10,i);
 			}
+			t.drawString(formattedDoubleToString(Nav.getDestination()[3],2), 5, 3);
 
 			// throttle the OdometryDisplay
 			displayEnd = System.currentTimeMillis();

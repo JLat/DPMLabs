@@ -47,7 +47,8 @@ public class SmoothUSSensor extends Thread {
 	public SmoothUSSensor(int recentListSize, int PlusOffset, int MinusOffset, int UpperBound, int LowerBound) {
 
 		this.recent = new LinkedList<Integer>();
-
+		
+		this.recentListSize = recentListSize;
 		this.plusOffset = PlusOffset;
 		this.minusOffset = MinusOffset;
 		this.upperBound = UpperBound;
@@ -67,6 +68,7 @@ public class SmoothUSSensor extends Thread {
 	}
 
 	public void run() {
+		this.recent.clear();
 		while (true) {
 			// acquire data
 			us.fetchSample(usData, 0);
@@ -89,13 +91,16 @@ public class SmoothUSSensor extends Thread {
 		// the distance is constrained as to remove unpleasant values.
 					// note: we use the rawDistance in the first call to min() in order
 					// to use the rawDistance value, but not change it.
+					
+		
 					processedDistance = Math.min(upperBound, rawDistance);
 					processedDistance = Math.max(lowerBound, processedDistance);
 
 					// use a linked list of size recentListSize to store recent US
 					// readings. Every time a new reading is received, it is added to
 					// the list, and the oldest reading is removed.
-
+					
+		
 					previousAverage = getAverage(recent);
 
 					// conserving the "original" distance since we will tinker with the
@@ -114,11 +119,14 @@ public class SmoothUSSensor extends Thread {
 					 * values to allow faster response to walls than to open space.
 					 * 
 					 */
+					
 					processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
 					processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
+					
 
 					// we add the processed distance to the recent values list.
 					this.recent.addLast(processedDistance);
+					
 
 					// the size of the list is controlled.
 					if (recent.size() > recentListSize) {
@@ -134,6 +142,7 @@ public class SmoothUSSensor extends Thread {
 						// processed value.
 
 					}
+					
 	}
 
 	// simple method to get the average of a Linked list of integers.
@@ -145,7 +154,7 @@ public class SmoothUSSensor extends Thread {
 		for (Integer i : list) {
 			result += i;
 		}
-		return result / list.size();
+		return (result) / list.size();
 	}
 
 	public int getProcessedDistance() {

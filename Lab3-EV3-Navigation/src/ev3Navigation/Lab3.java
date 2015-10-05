@@ -57,7 +57,8 @@ public class Lab3 {
 				navigator.travelTo(destX[i],destY[i], true);
 				//Wait until we are done moving to location
 				while(navigator.isNavigating()){
-					if (Button.waitForAnyPress() != Button.ID_ESCAPE)
+					int button = Button.waitForAnyPress(500);
+					if (button != Button.ID_ESCAPE && button !=0)
 						System.exit(0);
 				}
 			}

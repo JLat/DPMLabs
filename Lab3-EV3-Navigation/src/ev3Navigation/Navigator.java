@@ -24,7 +24,7 @@ public class Navigator extends Thread {
 	// Distance value below which the robot considers it is facing an obstacle.
 	obstacleThreshold = 25,
 			// distance below which the robot enters an emergency turn.
-			emergencyThreshold = 10,
+			emergencyThreshold = 15,
 			/*
 			 * smoothTurningThreshold is a constant representing an angle error
 			 * (in degrees) over which On-Point turning (without forward
@@ -36,7 +36,7 @@ public class Navigator extends Thread {
 	// this constant dictates how much of an impact the angle difference between
 	// the current heading and the destination heading will have on the motor
 	// speeds.
-	angularCorrectionConstant = 1.0;
+	angularCorrectionConstant = 1;
 
 	// -----------------------------------------------------------
 
@@ -52,7 +52,7 @@ public class Navigator extends Thread {
 		this.rightMotor = rightMotor;
 		wheelRadius = WR;
 		wheelTrack = WS;
-		this.USS = new SmoothUSSensor(10, 5, 20, 200, 0);
+		this.USS = new SmoothUSSensor(10, 5, -10, 200, 1);
 		this.USS.start();
 
 	}
@@ -64,18 +64,10 @@ public class Navigator extends Thread {
 		while (true) {
 			updateStart = System.currentTimeMillis();
 			if (navigating) {
-				// If we have reached our destination stop the motors and stop
-				// navigating
-				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 5) {
-					LocalEV3.get().getAudio().systemSound(0);
-					navigating = false;
-					rightMotor.flt();
-					leftMotor.flt();
-					return;
-				}
+				
 
 				// Obstacle in the way , start avoiding it.
-				else if (avoid && USS.getProcessedDistance() < obstacleThreshold && !obstacle) {
+				if (avoid && USS.getProcessedDistance() < obstacleThreshold && !obstacle) {
 					obstacle = true;
 				}
 
@@ -97,6 +89,7 @@ public class Navigator extends Thread {
 					rightMotor.flt();
 					leftMotor.flt();
 					travelTo(destX, destY, avoid);
+					
 				}
 
 				// Heading towards destination, proceed forward
@@ -122,6 +115,18 @@ public class Navigator extends Thread {
 					rightMotor.forward();
 					leftMotor.forward();
 				}
+				
+				// If we have reached our destination stop the motors and stop
+				// navigating
+				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 3) {
+					LocalEV3.get().getAudio().systemSound(0);
+					navigating = false;
+					rightMotor.flt();
+					leftMotor.flt();
+				}
+				
+				
+				
 
 				updateEnd = System.currentTimeMillis();
 				if (updateEnd - updateStart < NAVIGATOR_PERIOD) {
@@ -172,10 +177,12 @@ public class Navigator extends Thread {
 
 	// Move robot to location (x,y)
 	public void travelTo(double x, double y, boolean avoid) {
+		// tell other classes it is navigating
+		this.navigating = true;
 		// Set Destination location
 		Double dx, dy;
-		destX = x;
-		destY = y;
+		this.destX = x;
+		this.destY = y;
 
 		// Determine whether to search for obstacles or not
 		this.avoid = avoid;
@@ -187,25 +194,7 @@ public class Navigator extends Thread {
 		// Calculate angle to rotate to get to destination
 		// Note: every possible combination is taken care of by conditional
 		// statements, assuring correct results from the atan function.
-		/*
-		if (dx == 0 && dy > 0) {
-			destTheta = 0;
-		} else if (dx == 0 && dy < 0)
-			destTheta = 180;
-		else if (dy == 0 && dx > 0)
-			destTheta = 90;
-		else if (dy == 0 && dx < 0)
-			destTheta = 270;
-		else if (dx > 0) {
-			destTheta = (Math.atan(dx / dy)) * 180 / Math.PI;
-		} else if (dx < 0 && dy > 0) {
-			destTheta = (Math.atan(dx / dy) + Math.PI) * 180 / Math.PI;
-		} else if (dx < 0 && dy < 0) {
-			destTheta = (Math.atan(dx / dy) - Math.PI) * 180 / Math.PI;
-		}*/
-		
-		
-		
+				
 		if (dx == 0 && dy > 0) {
 			destTheta = 0;
 		} else if (dx == 0 && dy < 0)
@@ -223,12 +212,11 @@ public class Navigator extends Thread {
 		}
 		destTheta = getMinimalAngleBetween(0,destTheta);
 		turnTo(destTheta);
-		// tell other classes it is navigating
-		this.navigating = true;
+		
 
 		// Start moving forward
-		leftMotor.forward();
-		rightMotor.forward();
+		//leftMotor.forward();
+		//rightMotor.forward();
 	}
 
 	boolean avoidObstacle() {
@@ -256,7 +244,7 @@ public class Navigator extends Thread {
 		// emergency turn if robot somehow gets right next to the obstacle
 		if (distance <= emergencyThreshold) {
 
-			turnTo(odometer.getTheta() + 20);
+			turnTo(odometer.getTheta() + 50);
 			tempX = 0;
 			tempY = 0;
 
@@ -340,7 +328,7 @@ public class Navigator extends Thread {
 		return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 	}
 	public double[] getDestination (){
-		double [] destination =  {destX,destY,destTheta};
+		double [] destination =  {destX,destY,destTheta,USS.getProcessedDistance()};
 		return destination;
 	}
 	
