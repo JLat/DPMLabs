@@ -36,6 +36,7 @@ public class OdometryDisplay extends Thread {
 			
 			
 			
+			
 			// get the odometry information
 			odometer.getPosition(position, new boolean[] { true, true, true });
 

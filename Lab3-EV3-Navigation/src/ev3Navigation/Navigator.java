@@ -4,7 +4,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigator extends Thread {
 
-	private boolean navigating, obstacle;
+	
+	private boolean navigating, obstacle, avoid;
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	private double wheelRadius, wheelTrack;
@@ -19,9 +20,9 @@ public class Navigator extends Thread {
 	private int
 	// useful thresholds for robot correction.
 	// Distance value below which the robot considers it is facing an obstacle.
-			obstacleThreshold = 40,
+			obstacleThreshold = 25,
 			// distance below which the robot enters an emergency turn.
-			emergencyThreshold = 15,
+			emergencyThreshold = 10,
 			/*
 			 * smoothTurningThreshold is a constant representing an angle error
 			 * (in degrees) over which On-Point turning (without forward
@@ -39,11 +40,7 @@ public class Navigator extends Thread {
 
 	// what values are supposed to go in your smoothsensor?
 
-	// TODO: Fab- the values are pretty well explained in the declarations on
-	// the top of SmoothUSSensor class, basicly the list size, the plus and
-	// minus from the average that are tolerable, and the absolute bounds on
-	// values that we accept (0-200 for example).
-	private SmoothUSSensor USS = new SmoothUSSensor(10, 5, 20, 200, 0);
+	private SmoothUSSensor USS;
 
 	// Default Constructor
 	public Navigator(Odometer OD, EV3LargeRegulatedMotor leftMotor,
@@ -53,7 +50,7 @@ public class Navigator extends Thread {
 		this.rightMotor = rightMotor;
 		wheelRadius = WR;
 		wheelTrack = WS;
-
+		this.USS = new SmoothUSSensor(10, 5, 20, 200, 0);
 		this.USS.start();
 
 	}
@@ -71,7 +68,7 @@ public class Navigator extends Thread {
 			}
 
 			// Obstacle in the way , start avoiding it.
-			else if (USS.getProcessedDistance() < obstacleThreshold
+			else if (avoid && USS.getProcessedDistance() < obstacleThreshold
 					&& !obstacle) {
 				obstacle = true;
 			}
@@ -92,7 +89,7 @@ public class Navigator extends Thread {
 
 				rightMotor.flt();
 				leftMotor.flt();
-				travelTo(destX, destY);
+				travelTo(destX, destY,avoid);
 			}
 
 			// Heading towards destination, proceed forward
@@ -162,12 +159,15 @@ public class Navigator extends Thread {
 	}
 
 	// Move robot to location (x,y)
-	public void travelTo(double x, double y) {
+	public void travelTo(double x, double y, boolean avoid) {
 		// Set Destination location
 		Double dx, dy;
 		destX = x;
 		destY = y;
-
+		
+		
+		//Determine whether to search for obstacles or not
+		this.avoid = avoid;
 		// tell other classes it is navigating
 		navigating = true;
 

@@ -28,25 +28,49 @@ public class Lab3 {
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		Odometer odometer = new Odometer(leftMotor,rightMotor, WHEEL_RADIUS, TRACK);
 		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
-		Navigator navigator = new Navigator(odometer,leftMotor,rightMotor,WHEEL_RADIUS,TRACK);
+		Navigator navigator = new Navigator(odometer,leftMotor,rightMotor,WHEEL_RADIUS,TRACK);	
+		
+		do {
+			// clear the display
+			t.clear();
 
-		t.drawString("Press anything", 0, 0);
-		while(buttonChoice == 0){
+			// ask the user whether the motors should drive in a square or float
+			t.drawString("< Left | Right >", 0, 0);
+			t.drawString("       |        ", 0, 1);
+			t.drawString(" Part  | Part   ", 0, 2);
+			t.drawString("   1   |   2    ", 0, 3);
+			t.drawString("       |        ", 0, 4);
+
 			buttonChoice = Button.waitForAnyPress();
+		} while (buttonChoice != Button.ID_LEFT
+				&& buttonChoice != Button.ID_RIGHT);
+		if (buttonChoice == Button.ID_RIGHT) {
+			odometer.start();
+			odometryDisplay.start();
+			navigator.start();
+			
+			double [] destX = {0,60};
+			double [] destY = {60,0};
+			
+			for (int i = 0; i < destX.length; i ++){
+				navigator.travelTo(destX[i],destY[i], true);
+				//Wait until we are done moving to location
+				while(navigator.isNavigating()){}
+			}
 		}
+		else{
 			odometer.start();
 			odometryDisplay.start();
 			navigator.start();
 			
 			double [] destX = {60,30,30,60};
 			double [] destY = {30,30,60,0};
-			
 			for (int i = 0; i < destX.length; i ++){
-				navigator.travelTo(destX[i],destY[i]);
+				navigator.travelTo(destX[i],destY[i], false);
 				//Wait until we are done moving to location
 				while(navigator.isNavigating()){}
 			}
-			
+		}
 			
 		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);
