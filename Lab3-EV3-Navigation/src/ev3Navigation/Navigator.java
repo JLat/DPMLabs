@@ -64,7 +64,7 @@ public class Navigator extends Thread {
 			if (navigating) {
 				// If we have reached our destination stop the motors and stop
 				// navigating
-				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 1) {
+				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 5) {
 					navigating = false;
 					rightMotor.flt();
 					leftMotor.flt();
@@ -184,7 +184,7 @@ public class Navigator extends Thread {
 		// Calculate angle to rotate to get to destination
 		// Note: every possible combination is taken care of by conditional
 		// statements, assuring correct results from the atan function.
-
+		/*
 		if (dx == 0 && dy > 0) {
 			destTheta = 0;
 		} else if (dx == 0 && dy < 0)
@@ -199,7 +199,26 @@ public class Navigator extends Thread {
 			destTheta = (Math.atan(dx / dy) + Math.PI) * 180 / Math.PI;
 		} else if (dx < 0 && dy < 0) {
 			destTheta = (Math.atan(dx / dy) - Math.PI) * 180 / Math.PI;
+		}*/
+		
+		
+		
+		if (dx == 0 && dy > 0) {
+			destTheta = 0;
+		} else if (dx == 0 && dy < 0)
+			destTheta = 180;
+		else if (dy == 0 && dx > 0)
+			destTheta = 90;
+		else if (dy == 0 && dx < 0)
+			destTheta = 270;
+		else if (dx > 0) {
+			destTheta = (Math.PI / 2 - Math.atan(dy / dx)) * 180 / Math.PI;
+		} else if (dx < 0 && dy > 0) {
+			destTheta = (-Math.PI / 2 - Math.atan(dy / dx)) * 180 / Math.PI;
+		} else if (dx < 0 && dy < 0) {
+			destTheta = (3 * Math.PI / 2 - Math.atan(dy / dx)) * 180 / Math.PI;
 		}
+		destTheta = getMinimalAngleBetween(0,destTheta);
 		turnTo(destTheta);
 		// tell other classes it is navigating
 		this.navigating = true;
