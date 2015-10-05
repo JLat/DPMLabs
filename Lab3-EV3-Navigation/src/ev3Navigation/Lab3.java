@@ -27,8 +27,9 @@ public class Lab3 {
 		
 		final TextLCD t = LocalEV3.get().getTextLCD();
 		Odometer odometer = new Odometer(leftMotor,rightMotor, WHEEL_RADIUS, TRACK);
-		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t);
 		Navigator navigator = new Navigator(odometer,leftMotor,rightMotor,WHEEL_RADIUS,TRACK);	
+		OdometryDisplay odometryDisplay = new OdometryDisplay(odometer,t, navigator);
+		
 		
 		do {
 			// clear the display
@@ -55,7 +56,10 @@ public class Lab3 {
 			for (int i = 0; i < destX.length; i ++){
 				navigator.travelTo(destX[i],destY[i], true);
 				//Wait until we are done moving to location
-				while(navigator.isNavigating()){}
+				while(navigator.isNavigating()){
+					if (Button.waitForAnyPress() != Button.ID_ESCAPE)
+						System.exit(0);
+				}
 			}
 		}
 		else{
@@ -68,7 +72,11 @@ public class Lab3 {
 			for (int i = 0; i < destX.length; i ++){
 				navigator.travelTo(destX[i],destY[i], false);
 				//Wait until we are done moving to location
-				while(navigator.isNavigating()){}
+				while(navigator.isNavigating()){
+					int button = Button.waitForAnyPress(500);
+					if (button != Button.ID_ESCAPE && button !=0)
+						System.exit(0);
+				}
 			}
 		}
 			

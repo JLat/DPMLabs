@@ -88,7 +88,7 @@ public class Odometer extends Thread {
 
 			synchronized (lock) {
 				// update theta, x and y according to measured changes
-				theta += (deltaL - deltaR) / wheelTrack; 
+				theta += (deltaL - deltaR) / wheelTrack;
 				x += deltaD * Math.sin(theta);
 				y += deltaD * Math.cos(theta);
 			}
@@ -116,8 +116,7 @@ public class Odometer extends Thread {
 			if (update[1])
 				position[1] = y;
 			if (update[2])
-				position[2] = theta / Math.PI * 180;// Return the value in
-													// degrees
+				position[2] = theta /Math.PI * 180 % 360;
 		}
 	}	
 
@@ -148,7 +147,7 @@ public class Odometer extends Thread {
 			result = theta;
 		}
 
-		return result;
+		return result  /Math.PI * 180 % 360;
 	}
 
 	// mutators

@@ -57,13 +57,12 @@ public class SmoothUSSensor extends Thread {
 
 		// usSensor is the instance
 		SensorModes usSensor = new EV3UltrasonicSensor(usPort);
-		us = usSensor.getMode("Distance");
+		this.us = usSensor.getMode("Distance");
 
 		SampleProvider usDistance = usSensor.getMode("Distance");
 		// usDistance provides samples from this instance
 		this.usData = new float[usDistance.sampleSize()];
-		// usData is the buffer in which data are returned
-		
+		// usData is the buffer in which data are returned		
 
 	}
 

@@ -9,12 +9,14 @@ import lejos.hardware.lcd.TextLCD;
 public class OdometryDisplay extends Thread {
 	private static final long DISPLAY_PERIOD = 250;
 	private Odometer odometer;
+	private Navigator Nav;
 	private TextLCD t;
 
 	// constructor
-	public OdometryDisplay(Odometer odometer, TextLCD t) {
+	public OdometryDisplay(Odometer odometer, TextLCD t, Navigator Nav) {
 		this.odometer = odometer;
 		this.t = t;
+		this.Nav = Nav;
 	}
 
 	// run method (required for Thread)
@@ -43,6 +45,9 @@ public class OdometryDisplay extends Thread {
 			// display odometry information
 			for (int i = 0; i < 3; i++) {
 				t.drawString(formattedDoubleToString(position[i], 2), 3, i);
+			}
+			for (int i = 0; i < 3; i ++){
+				t.drawString(formattedDoubleToString(Nav.getDestination()[i],2),10,i);
 			}
 
 			// throttle the OdometryDisplay
