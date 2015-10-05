@@ -1,5 +1,6 @@
 package ev3Navigation;
 
+import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigator extends Thread {
@@ -61,10 +62,12 @@ public class Navigator extends Thread {
 
 		updateStart = System.currentTimeMillis();
 		while (true) {
+			updateStart = System.currentTimeMillis();
 			if (navigating) {
 				// If we have reached our destination stop the motors and stop
 				// navigating
 				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 5) {
+					LocalEV3.get().getAudio().systemSound(0);
 					navigating = false;
 					rightMotor.flt();
 					leftMotor.flt();
@@ -89,7 +92,7 @@ public class Navigator extends Thread {
 
 				// The obstacle was avoided or the heading drifted past a the
 				// threshold, turn On-Point to face destination
-				else if (Math.abs(destTheta - odometer.getTheta()) > smoothTurningThreshold) {
+				else if (Math.abs(getMinimalAngleBetween(destTheta, odometer.getTheta())) > smoothTurningThreshold) {
 
 					rightMotor.flt();
 					leftMotor.flt();

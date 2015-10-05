@@ -77,6 +77,7 @@ public class Lab3 {
 					if (button != Button.ID_ESCAPE && button !=0)
 						System.exit(0);
 				}
+				
 			}
 		}
 			
