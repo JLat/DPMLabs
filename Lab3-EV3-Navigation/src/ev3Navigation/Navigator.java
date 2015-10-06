@@ -22,21 +22,18 @@ public class Navigator extends Thread {
 	private int
 	// useful thresholds for robot correction.
 	// Distance value below which the robot considers it is facing an obstacle.
-	obstacleThreshold = 25,
+	obstacleThreshold = 30,
 			// distance below which the robot enters an emergency turn.
-			emergencyThreshold = 15,
+			emergencyThreshold = 10,
 			/*
 			 * smoothTurningThreshold is a constant representing an angle error
 			 * (in degrees) over which On-Point turning (without forward
 			 * velocity) takes charge of correcting the robot's heading instead
 			 * of a smooth proportional turning.
 			 */
-			smoothTurningThreshold = 30;
-	private double
-	// this constant dictates how much of an impact the angle difference between
-	// the current heading and the destination heading will have on the motor
-	// speeds.
-	angularCorrectionConstant = 1;
+			smoothTurningThreshold = 5,
+			// used in the P-type obstacle avoider.
+			ratio = 7;
 
 	// -----------------------------------------------------------
 
@@ -52,7 +49,7 @@ public class Navigator extends Thread {
 		this.rightMotor = rightMotor;
 		wheelRadius = WR;
 		wheelTrack = WS;
-		this.USS = new SmoothUSSensor(10, 5, -10, 200, 1);
+		this.USS = new SmoothUSSensor(5, 5, 10, 50, 1);
 		this.USS.start();
 
 	}
@@ -64,9 +61,9 @@ public class Navigator extends Thread {
 		while (true) {
 			updateStart = System.currentTimeMillis();
 			if (navigating) {
-				
 
-				// Obstacle in the way , start avoiding it.
+				// If the robot is set to avoid obstacles, and that it detects
+				// one, then proceed to avoid it.
 				if (avoid && USS.getProcessedDistance() < obstacleThreshold && !obstacle) {
 					obstacle = true;
 				}
@@ -84,12 +81,12 @@ public class Navigator extends Thread {
 
 				// The obstacle was avoided or the heading drifted past a the
 				// threshold, turn On-Point to face destination
-				else if (Math.abs(getMinimalAngleBetween(destTheta, odometer.getTheta())) > smoothTurningThreshold) {
+				else if ((Math.abs(getMinimalAngleBetween(destTheta, odometer.getTheta())) > smoothTurningThreshold)){
 
 					rightMotor.flt();
 					leftMotor.flt();
 					travelTo(destX, destY, avoid);
-					
+
 				}
 
 				// Heading towards destination, proceed forward
@@ -103,30 +100,27 @@ public class Navigator extends Thread {
 					// TODO: Check if the angular and linear errors effectively
 					// smooth out the correction of the robot's linear speed and
 					// heading.
-					int linearError = (int) (Math.min(FORWARD_SPEED, FORWARD_SPEED / 2 + (distanceTo * 5)));
-
-					int angularError = (int) (getMinimalAngleBetween(odometer.getTheta(), destTheta));
+					int linearError = (int) (FORWARD_SPEED / 2 + (distanceTo * 5));
+					linearError = constrainWithin(FORWARD_SPEED / 2, linearError, FORWARD_SPEED);
 
 					// set the speeds of the motor according to the linear and
 					// angular corrections.
-					rightMotor.setSpeed((int) (Math.min(FORWARD_SPEED,linearError + angularCorrectionConstant * angularError)));
-					leftMotor.setSpeed((int) (Math.min(FORWARD_SPEED,linearError - angularCorrectionConstant * angularError)));
+					rightMotor.setSpeed(linearError);
+					leftMotor.setSpeed(linearError);
 
 					rightMotor.forward();
 					leftMotor.forward();
 				}
-				
+
 				// If we have reached our destination stop the motors and stop
 				// navigating
-				if (distanceBetween(odometer.getX(),odometer.getY(),destX,destY) < 3) {
-					LocalEV3.get().getAudio().systemSound(0);
+				if (distanceBetween(odometer.getX(), odometer.getY(), destX, destY) < 2) {
+
 					navigating = false;
 					rightMotor.flt();
 					leftMotor.flt();
+					LocalEV3.get().getAudio().systemSound(0);
 				}
-				
-				
-				
 
 				updateEnd = System.currentTimeMillis();
 				if (updateEnd - updateStart < NAVIGATOR_PERIOD) {
@@ -162,7 +156,7 @@ public class Navigator extends Thread {
 	public void turnTo(double theta) {
 
 		Double currentHeading = odometer.getTheta() % 360;
-
+		
 		rotate(getMinimalAngleBetween(currentHeading, theta));
 		this.navigating = true;
 	}
@@ -194,7 +188,7 @@ public class Navigator extends Thread {
 		// Calculate angle to rotate to get to destination
 		// Note: every possible combination is taken care of by conditional
 		// statements, assuring correct results from the atan function.
-				
+
 		if (dx == 0 && dy > 0) {
 			destTheta = 0;
 		} else if (dx == 0 && dy < 0)
@@ -210,20 +204,19 @@ public class Navigator extends Thread {
 		} else if (dx < 0 && dy < 0) {
 			destTheta = (3 * Math.PI / 2 - Math.atan(dy / dx)) * 180 / Math.PI;
 		}
-		destTheta = getMinimalAngleBetween(0,destTheta);
+		destTheta = getMinimalAngleBetween(0, destTheta);
 		turnTo(destTheta);
-		
 
 		// Start moving forward
-		//leftMotor.forward();
-		//rightMotor.forward();
+//		leftMotor.forward();
+//		rightMotor.forward();
 	}
 
 	boolean avoidObstacle() {
 
 		// the return value of this function represents if the robot has cleared
 		// the obstacle.
-		boolean obstacleAvoided = false;
+		boolean avoidingObstacle = true;
 
 		// the temporary values tempX and tempY represent position of the end of
 		// the obstacle. they equal 0 when the position has not been set yet.
@@ -233,18 +226,11 @@ public class Navigator extends Thread {
 		// the ratio variable is used to slow down one wheel proportionally
 		// to how close the robot is to the obstacle (P-Type style).
 		// ratio should remain fractional and between 0 and 1;
-		double ratio;
-
-		// TODO: Fab- prehaps it would better to use a constant multiplier of
-		// some kind in order to get a more severe response when the robot gets
-		// close to an obstacle.. I dont know for now, physical experimentation
-		// will
-		// tell us it this is sufficient.
 
 		// emergency turn if robot somehow gets right next to the obstacle
 		if (distance <= emergencyThreshold) {
 
-			turnTo(odometer.getTheta() + 50);
+			rotate(35);
 			tempX = 0;
 			tempY = 0;
 
@@ -252,9 +238,12 @@ public class Navigator extends Thread {
 			// if the robot is at a safe distance from an obstacle, begin
 			// avoiding it with a P-Type controller.
 
-			ratio = (distance / 40.0);
-			rightMotor.setSpeed((int) (FORWARD_SPEED * ratio));
+			int delta = obstacleThreshold - distance;
+			rightMotor
+					.setSpeed((int) constrainWithin(FORWARD_SPEED / 2, (FORWARD_SPEED - ratio * delta), FORWARD_SPEED));
 			leftMotor.setSpeed(FORWARD_SPEED);
+			rightMotor.forward();
+			leftMotor.forward();
 
 			tempX = 0;
 			tempY = 0;
@@ -273,22 +262,30 @@ public class Navigator extends Thread {
 				tempY = odometer.getY();
 			}
 
-			// move 10 cm away from the current position.
-			if (distanceBetween(odometer.getX(), odometer.getY(), tempX, tempY) <= 10) {
+			// move a certain distance away from the current position.
+			if (distanceBetween(odometer.getX(), odometer.getY(), tempX, tempY) <= 25) {
 				rightMotor.setSpeed(FORWARD_SPEED);
 				leftMotor.setSpeed(FORWARD_SPEED);
+				rightMotor.forward();
+				leftMotor.forward();
 
 			} else {
-				// we have now moved 10 cm away from the end of the obstacle,
+				// we have now moved 25 cm away from the end of the obstacle,
 				// reset the tempX and tempY values and return true so the robot
 				// can reposition itself.
+
+				LocalEV3.get().getAudio().systemSound(1);
 				tempX = 0;
 				tempY = 0;
-				obstacleAvoided = true;
+				avoidingObstacle = false;
+				leftMotor.flt();
+				rightMotor.flt();
+				travelTo(destX, destY, avoid);
+
 			}
 		}
 
-		return obstacleAvoided;
+		return avoidingObstacle;
 
 	}
 
@@ -297,6 +294,8 @@ public class Navigator extends Thread {
 	}
 
 	public double getMinimalAngleBetween(double currentTheta, double DestinationTheta) {
+		currentTheta %= 360;
+		DestinationTheta %= 360;
 
 		if (Math.abs(DestinationTheta - currentTheta) <= 180) {
 			return (DestinationTheta - currentTheta);
@@ -327,10 +326,22 @@ public class Navigator extends Thread {
 	public double distanceBetween(double x1, double y1, double x2, double y2) {
 		return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
 	}
-	public double[] getDestination (){
-		double [] destination =  {destX,destY,destTheta,USS.getProcessedDistance()};
+
+	public double[] getDestination() {
+		double[] destination = { destX, destY, destTheta, USS.getProcessedDistance() };
 		return destination;
 	}
-	
+
+	public int constrainWithin(int lowerBound, int value, int upperBound) {
+		return Math.min(upperBound, Math.max(lowerBound, value));
+	}
+
+	public double constrainWithin(double lowerBound, double value, double upperBound) {
+		return Math.min(upperBound, Math.max(lowerBound, value));
+	}
+
+	public boolean isWithinRange(int value, int lowerBound, int upperBound) {
+		return (value > lowerBound && value < upperBound);
+	}
 
 }

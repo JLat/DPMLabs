@@ -93,8 +93,7 @@ public class SmoothUSSensor extends Thread {
 					// to use the rawDistance value, but not change it.
 					
 		
-					processedDistance = Math.min(upperBound, rawDistance);
-					processedDistance = Math.max(lowerBound, processedDistance);
+					processedDistance = Math.min(upperBound, Math.max(lowerBound, rawDistance));
 
 					// use a linked list of size recentListSize to store recent US
 					// readings. Every time a new reading is received, it is added to
@@ -119,9 +118,11 @@ public class SmoothUSSensor extends Thread {
 					 * values to allow faster response to walls than to open space.
 					 * 
 					 */
+					if(recent.size()==recentListSize){
+						processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
+						processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
+					}
 					
-					processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
-					processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
 					
 
 					// we add the processed distance to the recent values list.
