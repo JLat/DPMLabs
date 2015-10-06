@@ -5,7 +5,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigator extends Thread {
 
-	private boolean navigating, obstacle, avoid;
+	private boolean navigating, obstacle, avoid, within10;
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	private double wheelRadius, wheelTrack;
@@ -55,10 +55,28 @@ public class Navigator extends Thread {
 	}
 
 	public void run() {
+
 		long updateStart, updateEnd;
 
 		updateStart = System.currentTimeMillis();
 		while (true) {
+
+			/*
+			 * Algorithm idea:
+			 * 
+			 * 
+			 * 1) head to the target, move forward the required distance.
+			 * 
+			 * if at any time the robot detects that it is close to a wall:
+			 * 
+			 * 2)- begin a P-type wall-following method until the distance
+			 * becomes great again (or simply that the obstacle is cleared)
+			 * Note: Odometer is active while this happens.
+			 * 
+			 * 3) Use current X and Y to reposition itself to target and begin
+			 * moving required distance.
+			 */
+
 			updateStart = System.currentTimeMillis();
 			if (navigating) {
 
@@ -72,16 +90,17 @@ public class Navigator extends Thread {
 				if (obstacle) {
 
 					// method avoidObstacle() uses the USS data and sets the
-					// motors
-					// to the right speeds, returns true if the obstacle is now
+					// motors to the right speeds, returns false if the obstacle
+					// is now
 					// avoided.
 					obstacle = avoidObstacle();
+					
 
 				}
 
 				// The obstacle was avoided or the heading drifted past a the
 				// threshold, turn On-Point to face destination
-				else if ((Math.abs(getMinimalAngleBetween(destTheta, odometer.getTheta())) > smoothTurningThreshold)){
+				else if ((Math.abs(getMinimalAngleBetween(destTheta, odometer.getTheta())) > smoothTurningThreshold)) {
 
 					rightMotor.flt();
 					leftMotor.flt();
@@ -90,21 +109,19 @@ public class Navigator extends Thread {
 				}
 
 				// Heading towards destination, proceed forward
-				// Adjust motor speed depending on the linear and angular
-				// errors.
+				// Adjust motor speed depending on the linear error.
 				else {
 
 					// Calculate current distance to destination
 					double distanceTo = distanceBetween(odometer.getX(), odometer.getY(), destX, destY);
 
-					// TODO: Check if the angular and linear errors effectively
-					// smooth out the correction of the robot's linear speed and
-					// heading.
+					// this linear error correction slows down the robot once it
+					// gets close to its objective.
 					int linearError = (int) (FORWARD_SPEED / 2 + (distanceTo * 5));
 					linearError = constrainWithin(FORWARD_SPEED / 2, linearError, FORWARD_SPEED);
 
-					// set the speeds of the motor according to the linear and
-					// angular corrections.
+					// set the speeds of the motor according to the linear
+					// error.
 					rightMotor.setSpeed(linearError);
 					leftMotor.setSpeed(linearError);
 
@@ -113,12 +130,18 @@ public class Navigator extends Thread {
 				}
 
 				// If we have reached our destination stop the motors and stop
-				// navigating
-				if (distanceBetween(odometer.getX(), odometer.getY(), destX, destY) < 2) {
+				// // navigating
+				// if(distanceBetween(odometer.getX(), odometer.getY(), destX,
+				// destY)<10 && !within10){
+				// within10 = true;
+				// travelTo(destX,destY, avoid);
+				// }
+				//
+				if (distanceBetween(odometer.getX(), odometer.getY(), destX, destY) < 3) {
 
 					navigating = false;
-					rightMotor.flt();
-					leftMotor.flt();
+					rightMotor.stop();
+					leftMotor.stop();
 					LocalEV3.get().getAudio().systemSound(0);
 				}
 
@@ -128,28 +151,13 @@ public class Navigator extends Thread {
 						Thread.sleep(NAVIGATOR_PERIOD - (updateEnd - updateStart));
 					} catch (InterruptedException e) {
 						// there is nothing to be done here because it is not
-						// expected that the odometer will be interrupted by
+						// expected that the Navigator will be interrupted by
 						// another thread
 					}
 				}
 			}
 		}
 
-		/*
-		 * Algorithm idea:
-		 * 
-		 * 
-		 * 1) head to the target, move forward the required distance.
-		 * 
-		 * if at any time the robot detects that it is close to a wall:
-		 * 
-		 * 2)- begin a P-type wall-following method until the distance becomes
-		 * great again (or simply that the obstacle is cleared) Note: Odometer
-		 * is active while this happens.
-		 * 
-		 * 3) Use current X and Y to reposition itself to target and begin
-		 * moving required distance.
-		 */
 	}
 
 	// Rotate robot to heading theta
@@ -167,9 +175,11 @@ public class Navigator extends Thread {
 		rightMotor.setSpeed(ROTATE_SPEED);
 		leftMotor.rotate(convertAngle(wheelRadius, wheelTrack, theta), true);
 		rightMotor.rotate(-convertAngle(wheelRadius, wheelTrack, theta), false);
+//		leftMotor.flt();
+//		rightMotor.flt();
 	}
 
-	// Move robot to location (x,y)
+	// Move robot to location (x,y), if avoid==true, avoid obstacles in the way.
 	public void travelTo(double x, double y, boolean avoid) {
 		// tell other classes it is navigating
 		this.navigating = true;
@@ -204,12 +214,13 @@ public class Navigator extends Thread {
 		} else if (dx < 0 && dy < 0) {
 			destTheta = (3 * Math.PI / 2 - Math.atan(dy / dx)) * 180 / Math.PI;
 		}
+		
 		destTheta = getMinimalAngleBetween(0, destTheta);
 		turnTo(destTheta);
 
 		// Start moving forward
-//		leftMotor.forward();
-//		rightMotor.forward();
+		// leftMotor.forward();
+		// rightMotor.forward();
 	}
 
 	boolean avoidObstacle() {
@@ -223,11 +234,7 @@ public class Navigator extends Thread {
 
 		int distance = USS.getProcessedDistance();
 
-		// the ratio variable is used to slow down one wheel proportionally
-		// to how close the robot is to the obstacle (P-Type style).
-		// ratio should remain fractional and between 0 and 1;
-
-		// emergency turn if robot somehow gets right next to the obstacle
+		// emergency turn if robot gets right next to the obstacle
 		if (distance <= emergencyThreshold) {
 
 			rotate(35);
@@ -250,7 +257,7 @@ public class Navigator extends Thread {
 
 		} else {
 
-			// the distance is now bigger than 40.
+			// the distance is now bigger than the obstacleThreshold.
 			// The obstacle was cleared. the robot should still move forward for
 			// a little while before setting the obstacleAvoided value to true
 			// and repositioning itself towards the destination.
@@ -274,12 +281,14 @@ public class Navigator extends Thread {
 				// reset the tempX and tempY values and return true so the robot
 				// can reposition itself.
 
-				LocalEV3.get().getAudio().systemSound(1);
+				//LocalEV3.get().getAudio().systemSound(1);
 				tempX = 0;
 				tempY = 0;
 				avoidingObstacle = false;
-				leftMotor.flt();
-				rightMotor.flt();
+				leftMotor.stop(true);
+				rightMotor.stop(false);
+				
+				//TODO: without the next line, the robot JERKS after having avoided the obstacle.
 				travelTo(destX, destY, avoid);
 
 			}
@@ -292,10 +301,33 @@ public class Navigator extends Thread {
 	public boolean isNavigating() {
 		return navigating;
 	}
-
+	
+	
+	
 	public double getMinimalAngleBetween(double currentTheta, double DestinationTheta) {
+		
+		// this method returns the minimal angle between currentTheta and DestinationTheta (in degrees)
 		currentTheta %= 360;
 		DestinationTheta %= 360;
+		
+		if(currentTheta <= -180){
+			currentTheta = 360 + currentTheta;
+		}else if(currentTheta >= 180){
+			currentTheta = 360 - currentTheta;
+		}
+		
+		
+		if(DestinationTheta <= -180){
+			DestinationTheta = 360 + DestinationTheta;
+		}else if(DestinationTheta >= 180){
+			DestinationTheta = 360 - DestinationTheta;
+		}
+		
+		
+		
+		
+		
+		
 
 		if (Math.abs(DestinationTheta - currentTheta) <= 180) {
 			return (DestinationTheta - currentTheta);
@@ -343,5 +375,9 @@ public class Navigator extends Thread {
 	public boolean isWithinRange(int value, int lowerBound, int upperBound) {
 		return (value > lowerBound && value < upperBound);
 	}
+	public boolean isWithinRange(double value, double lowerBound, double upperBound) {
+		return (value > lowerBound && value < upperBound);
+	}
+	
 
 }

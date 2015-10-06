@@ -78,12 +78,22 @@ public class Odometer extends Thread {
 			deltaD = (deltaR + deltaL) / 2; 
 			lastTachoL = nowTachoL; // update holder for last tachometer readings
 			lastTachoR = nowTachoR;
+			
+			
 
 			synchronized (lock) {
 				// update theta, x and y according to measured changes
 				theta += (deltaL - deltaR) / wheelTrack; 
 				x += deltaD * Math.sin(theta);
 				y += deltaD * Math.cos(theta);
+				
+				if(theta>=Math.PI){
+					theta = Math.PI - theta;
+				}else if(theta<=-Math.PI){
+					theta = Math.PI + theta;
+				}
+				
+				
 			}
 
 			// this ensures that the odometer only runs once every period
@@ -108,8 +118,12 @@ public class Odometer extends Thread {
 				position[0] = x;
 			if (update[1])
 				position[1] = y;
-			if (update[2])
-				position[2] = theta / Math.PI * 180;// Return the value in
+			if (update[2]){
+				
+				position[2] = theta / Math.PI * 180;				
+				
+			}
+				// Return the value in
 													// degrees
 		}
 	}	
@@ -138,6 +152,7 @@ public class Odometer extends Thread {
 		double result;
 
 		synchronized (lock) {
+			
 			result = theta;
 		}
 
@@ -153,6 +168,9 @@ public class Odometer extends Thread {
 			if (update[1])
 				y = position[1];
 			if (update[2])
+				//TODO: check if this is correct.
+				
+				//
 				theta = position[2];
 		}
 	}
@@ -171,7 +189,14 @@ public class Odometer extends Thread {
 
 	public void setTheta(double theta) {
 		synchronized (lock) {
-			this.theta = theta;
+			//TODO: check that this is correct:
+			if(theta <= -180){
+				this.theta = 360 + theta;
+			}else if(theta >= 180){
+				this.theta = 360 - theta;
+			}else{
+				this.theta = theta;
+			}
 		}
 	}
 }
