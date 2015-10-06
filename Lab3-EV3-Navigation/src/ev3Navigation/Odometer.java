@@ -91,6 +91,12 @@ public class Odometer extends Thread {
 				theta += (deltaL - deltaR) / wheelTrack;
 				x += deltaD * Math.sin(theta);
 				y += deltaD * Math.cos(theta);
+				
+				if(this.theta<=-Math.PI){
+					this.theta = 2*Math.PI+theta;
+				}else if(this.theta>=Math.PI){
+					this.theta = -2*Math.PI + theta;
+				}
 			}
 
 			// this ensures that the odometer only runs once every period

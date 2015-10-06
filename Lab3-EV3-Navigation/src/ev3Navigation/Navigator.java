@@ -5,7 +5,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigator extends Thread {
 
-	private boolean navigating, obstacle, avoid, within10;
+	private boolean navigating, obstacle, avoid;
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor rightMotor, leftMotor;
 	private double wheelRadius, wheelTrack;
@@ -22,9 +22,9 @@ public class Navigator extends Thread {
 	private int
 	// useful thresholds for robot correction.
 	// Distance value below which the robot considers it is facing an obstacle.
-	obstacleThreshold = 30,
+	obstacleThreshold = 40,
 			// distance below which the robot enters an emergency turn.
-			emergencyThreshold = 10,
+			emergencyThreshold = 15,
 			/*
 			 * smoothTurningThreshold is a constant representing an angle error
 			 * (in degrees) over which On-Point turning (without forward
@@ -129,20 +129,22 @@ public class Navigator extends Thread {
 					leftMotor.forward();
 				}
 
-				// If we have reached our destination stop the motors and stop
-				// // navigating
+				
 				// if(distanceBetween(odometer.getX(), odometer.getY(), destX,
 				// destY)<10 && !within10){
 				// within10 = true;
 				// travelTo(destX,destY, avoid);
 				// }
-				//
-				if (distanceBetween(odometer.getX(), odometer.getY(), destX, destY) < 3) {
+				
+				// If we have reached our destination stop the motors and stop
+				// navigating
+				if (distanceBetween(odometer.getX(), odometer.getY(), destX, destY) < 2) {
 
 					navigating = false;
-					rightMotor.stop();
-					leftMotor.stop();
+					rightMotor.stop(true);
+					leftMotor.stop(false);
 					LocalEV3.get().getAudio().systemSound(0);
+
 				}
 
 				updateEnd = System.currentTimeMillis();
@@ -310,18 +312,18 @@ public class Navigator extends Thread {
 		currentTheta %= 360;
 		DestinationTheta %= 360;
 		
-		if(currentTheta <= -180){
-			currentTheta = 360 + currentTheta;
-		}else if(currentTheta >= 180){
-			currentTheta = 360 - currentTheta;
-		}
-		
-		
-		if(DestinationTheta <= -180){
-			DestinationTheta = 360 + DestinationTheta;
-		}else if(DestinationTheta >= 180){
-			DestinationTheta = 360 - DestinationTheta;
-		}
+//		if(currentTheta <= -180){
+//			currentTheta = 360 + currentTheta;
+//		}else if(currentTheta >= 180){
+//			currentTheta = 360 - currentTheta;
+//		}
+//		
+//		
+//		if(DestinationTheta <= -180){
+//			DestinationTheta = 360 + DestinationTheta;
+//		}else if(DestinationTheta >= 180){
+//			DestinationTheta = 360 - DestinationTheta;
+//		}
 		
 		
 		
