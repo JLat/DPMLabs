@@ -11,8 +11,6 @@ import lejos.robotics.SampleProvider;
  * Copyright:
  * This class makes use of our own code from assignments 1 and 2 as well as parts of some demo code provided in these assignments.
  * 
- * TODO: Fab- Perhaps we could add methods in here to use the distance values and process the turning, but i'm not sure about that.
- * 
  * 
  * 
  */
