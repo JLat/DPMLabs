@@ -47,11 +47,11 @@ public class Lab4 {
 		Navigation nav = new Navigation(odo);
 		
 		// perform the ultrasonic localization
-		USLocalizer usl = new USLocalizer(odo, usValue, usData, USLocalizer.LocalizationType.FALLING_EDGE);
+		USLocalizer usl = new USLocalizer(odo, usValue, usData, USLocalizer.LocalizationType.FALLING_EDGE, lcd);
 		usl.doLocalization();
 		
 		// perform the light sensor localization
-		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav);
+		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav, lcd);
 		lsl.doLocalization();			
 		
 		while (Button.waitForAnyPress() != Button.ID_ESCAPE);

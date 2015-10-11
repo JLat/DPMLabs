@@ -1,5 +1,4 @@
 
-
 import java.util.LinkedList;
 
 import lejos.hardware.ev3.LocalEV3;
@@ -28,24 +27,24 @@ public class SmoothUSSensor extends Thread {
 	// list containing the recent processed distance values.
 	private LinkedList<Integer> recent;
 	private int
-		// original distance
-		rawDistance,
-		// altered distance
-		processedDistance,
-		// list size, greater list size improves smoothness but reduces
-		// robot responsiveness.
-		recentListSize,
-		// previous average of the list before insertion of new data.
-		previousAverage,
-		// absolute bounds on the distance value, (set to 0-255) by default.
-		upperBound = 255, lowerBound =0,
-		//offset bound values from previousAverage to the next accept
-		plusOffset, minusOffset;
+	// original distance
+	rawDistance,
+			// altered distance
+			processedDistance,
+			// list size, greater list size improves smoothness but reduces
+			// robot responsiveness.
+			recentListSize,
+			// previous average of the list before insertion of new data.
+			previousAverage,
+			// absolute bounds on the distance value, (set to 0-255) by default.
+			upperBound = 255, lowerBound = 0,
+			// offset bound values from previousAverage to the next accept
+			plusOffset, minusOffset;
 
 	public SmoothUSSensor(int recentListSize, int PlusOffset, int MinusOffset, int UpperBound, int LowerBound) {
 
 		this.recent = new LinkedList<Integer>();
-		
+
 		this.recentListSize = recentListSize;
 		this.plusOffset = PlusOffset;
 		this.minusOffset = MinusOffset;
@@ -61,7 +60,7 @@ public class SmoothUSSensor extends Thread {
 		SampleProvider usDistance = usSensor.getMode("Distance");
 		// usDistance provides samples from this instance
 		this.usData = new float[usDistance.sampleSize()];
-		// usData is the buffer in which data are returned		
+		// usData is the buffer in which data are returned
 
 	}
 
@@ -73,10 +72,8 @@ public class SmoothUSSensor extends Thread {
 
 			// extract from buffer, cast to int
 			this.rawDistance = (int) (usData[0] * 100.0);
-			
-			
+
 			processDistance();
-			
 
 			try {
 				Thread.sleep(50);
@@ -84,64 +81,59 @@ public class SmoothUSSensor extends Thread {
 			} // Poor man's timed sampling
 		}
 	}
-	
-	public void processDistance(){
+
+	public void processDistance() {
 		// the distance is constrained as to remove unpleasant values.
-					// note: we use the rawDistance in the first call to min() in order
-					// to use the rawDistance value, but not change it.
-					
-		
-					processedDistance = Math.min(upperBound, Math.max(lowerBound, rawDistance));
+		// note: we use the rawDistance in the first call to min() in order
+		// to use the rawDistance value, but not change it.
 
-					// use a linked list of size recentListSize to store recent US
-					// readings. Every time a new reading is received, it is added to
-					// the list, and the oldest reading is removed.
-					
-		
-					previousAverage = getAverage(recent);
+		processedDistance = Math.min(upperBound, Math.max(lowerBound, rawDistance));
 
-					// conserving the "original" distance since we will tinker with the
-					// distance value.
+		// use a linked list of size recentListSize to store recent US
+		// readings. Every time a new reading is received, it is added to
+		// the list, and the oldest reading is removed.
 
-					/*
-					 * The US sensor seems unable to detect short distances when placed
-					 * at an angle, causing many unwanted 255cm readings when right next
-					 * to the wall. The distance value is limited to the current average
-					 * +- an offset. This feature allows for smoothing out the irregular
-					 * and "extreme" values while still allowing a change in the average
-					 * over consistent readings.
-					 * 
-					 * note: the constant value added or removed to the currentAverage
-					 * is based on experimentation, and might be greater for lower US
-					 * values to allow faster response to walls than to open space.
-					 * 
-					 */
-					if(recent.size()>=recentListSize/2){
-						processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
-						processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
-					}
-					
-					
+		previousAverage = getAverage(recent);
 
-					// we add the processed distance to the recent values list.
-					this.recent.addLast(processedDistance);
-					
+		// conserving the "original" distance since we will tinker with the
+		// distance value.
 
-					// the size of the list is controlled.
-					if (recent.size() > recentListSize) {
-						recent.removeFirst();
-					}
-					if (recent.size() == recentListSize) {
-						// if the list is full, we set the distance to be equal to the
-						// average of the values in the list.
-						// (the getAverage function is defined at the end of this page.)
-						this.processedDistance = getAverage(recent);
-					} else {
-						// the list is not yet full, the distance value remains the
-						// processed value.
+		/*
+		 * The US sensor seems unable to detect short distances when placed at
+		 * an angle, causing many unwanted 255cm readings when right next to the
+		 * wall. The distance value is limited to the current average +- an
+		 * offset. This feature allows for smoothing out the irregular and
+		 * "extreme" values while still allowing a change in the average over
+		 * consistent readings.
+		 * 
+		 * note: the constant value added or removed to the currentAverage is
+		 * based on experimentation, and might be greater for lower US values to
+		 * allow a faster response to walls than to open space.
+		 * 
+		 */
+		if (recent.size() >= recentListSize / 2) {
+			processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
+			processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
+		}
 
-					}
-					
+		// we add the processed distance to the recent values list.
+		this.recent.addLast(processedDistance);
+
+		// the size of the list is controlled.
+		if (recent.size() > recentListSize) {
+			recent.removeFirst();
+		}
+		if (recent.size() == recentListSize) {
+			// if the list is full, we set the distance to be equal to the
+			// average of the values in the list.
+			// (the getAverage function is defined at the end of this page.)
+			this.processedDistance = getAverage(recent);
+		} else {
+			// the list is not yet full, the distance value remains the
+			// processed value.
+
+		}
+
 	}
 
 	// simple method to get the average of a Linked list of integers.
@@ -163,17 +155,20 @@ public class SmoothUSSensor extends Thread {
 	public int getRawDistance() {
 		return this.rawDistance;
 	}
-	
-	public void clear(){
+
+	public void clear() {
 		this.recent.clear();
 	}
-	public int getCurrentListSize(){
+
+	public int getCurrentListSize() {
 		return this.recent.size();
 	}
-	public int getListSize(){
+
+	public int getListSize() {
 		return this.recentListSize;
 	}
-	public boolean isFull(){
-		return this.recent.size()==this.recentListSize;
+
+	public boolean isFull() {
+		return this.recent.size() == this.recentListSize;
 	}
 }
