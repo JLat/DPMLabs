@@ -74,7 +74,7 @@ public class LCDInfo implements TimerListener {
 
 	public void setSensor(LightSensor lSensor) {
 		this.lSensor = lSensor;
-		this.source = "lSensor";
+		setSource("lSensor");
 	}
 
 	public void addInfo(String Label, double info) {
@@ -88,9 +88,11 @@ public class LCDInfo implements TimerListener {
 	// update the additional info value using its source.
 	public void updateValue() {
 		if (this.source.equals("USS")) {
-			setAddText("D: ", "" + USS.getProcessedDistance());
+			setAddText("D: ", ""+USS.getProcessedDistance());
 		} else if (this.source.equals("lSensor")) {
-			setAddText("L: ", "" + lSensor.getValue());
+			setAddText("L: ", lSensor.getValue());
+		}else{
+			setAddText("","");
 		}
 	}
 

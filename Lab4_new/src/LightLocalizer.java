@@ -23,18 +23,21 @@ public class LightLocalizer {
 	public void doLocalization() {
 		this.lSensor.start();
 		this.lcd.setSensor(lSensor);
-		this.lcd.addInfo("L: ", lSensor.getValue());
 		// initiate required variables.
 		double thetaX1 = 0, thetaX2 = 0, thetaY1 = 0, thetaY2 = 0, newX = 0, newY = 0, deltaTheta, deltaThetaX,
 				deltaThetaY;
-
-		// Set initial position based on USSensor
-		nav.travelTo(-5, -5);
-		nav.turnTo(0, true);
+		
+		while(!this.lSensor.isCalibrated()){
+			// do nothing.
+		}
+		this.lcd.addInfo("Calib: ", this.lSensor.getWoodValue());
+		
+		
+		pause();
 
 		// Assuming starting with robot facing 0 degrees (not sure if this is
 		// correct)
-
+		
 		// Rotate,detect 4 lines and collect the data needed
 		for (int i = 1; i <= 4; i++) {
 
@@ -50,7 +53,7 @@ public class LightLocalizer {
 				if (thetaX1 == 0) {
 					// This is the first line on X axis
 					thetaX1 = odo.getAng();
-					this.lcd.addInfo("thetax1: ", thetaX1);
+					//this.lcd.addInfo("thetax1: ", thetaX1);
 				} else {
 					// Second line on x axis
 
@@ -69,7 +72,7 @@ public class LightLocalizer {
 				if (thetaY1 == 0) {
 					// This is the first line on Y axis
 					thetaY1 = odo.getAng();
-					this.lcd.addInfo("thetaY1: ", thetaY1);
+					//this.lcd.addInfo("thetaY1: ", thetaY1);
 				} else {
 					// Second line on Y axis
 
@@ -85,9 +88,6 @@ public class LightLocalizer {
 				}
 
 			}
-
-			pause();
-
 			while (lSensor.seesLine()) {
 				nav.setSpeeds(+ROTATION_SPEED, -ROTATION_SPEED);
 			}
@@ -99,6 +99,9 @@ public class LightLocalizer {
 		deltaTheta = (deltaThetaY + deltaThetaX) / 2;
 
 		odo.setPosition(new double[] { newX, newY, odo.getAng() + deltaTheta }, new boolean[] { true, true, true });
+		pause();
+		
+		
 		nav.travelTo(0, 0);
 		nav.turnTo(0, true);
 	}

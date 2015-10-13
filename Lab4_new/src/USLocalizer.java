@@ -22,7 +22,7 @@ public class USLocalizer {
 		// added for convenience.
 		this.lcd = LCD;
 		this.nav = new Navigation(odo);
-		this.smoothUs = new SmoothUSSensor(10, 8, 8, distanceCap, 0);
+		this.smoothUs = new SmoothUSSensor(10, 3, 3, distanceCap, 0);
 		this.smoothUs.start();
 	}
 
@@ -186,17 +186,12 @@ public class USLocalizer {
 
 		// int distance = smoothUs.getProcessedDistance();
 		int distance = smoothUs.getProcessedDistance();
-//		long counter = System.currentTimeMillis();
-//		long delta = System.currentTimeMillis()-counter;
-//		int counter = 0;
 		
-		
-		while (distance < distanceCap
-				) {
+		while (distance < distanceCap) {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
 			//delta = System.currentTimeMillis()-counter;
-		}
+		}		
 	}
 
 	public void pause() {

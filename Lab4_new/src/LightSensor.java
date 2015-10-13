@@ -60,6 +60,7 @@ public class LightSensor extends Thread {
 		while (calibrationCounter < 10) {
 			sensor.fetchSample(data, 0);
 			temp += 100 * data[0];
+			calibrationCounter++;
 		}
 		this.woodValue = temp / 10;
 		this.calibrated = true;
@@ -77,12 +78,19 @@ public class LightSensor extends Thread {
 		if(list.isEmpty()){
 			return 0;
 		}else{
-			int sum=0;
+			double sum=0;
 			for(Double d: list){
 				sum +=d;
 			}
 			return sum/list.size();
 		}
 	}
-
+	
+	public double getWoodValue(){
+		return this.woodValue;
+	}
+	
+	public boolean isCalibrated(){
+		return this.calibrated;
+	}
 }
