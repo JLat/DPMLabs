@@ -6,7 +6,7 @@ public class LightLocalizer {
 	private Odometer odo;
 	private LightSensor lSensor;
 	private Navigation nav;
-	public static float ROTATION_SPEED = 30;
+	public static float ROTATION_SPEED = 60;
 	private int lineDifference = 20;
 	private LCDInfo lcd;
 
@@ -48,7 +48,7 @@ public class LightLocalizer {
 			nav.setSpeeds(0, 0);
 			LocalEV3.get().getAudio().systemSound(0);
 
-			if (i % 2 == 0) {
+			if (i % 2 == 1) {
 				// Even therefore lines on x axis (horizontal)
 				if (thetaX1 == 0) {
 					// This is the first line on X axis
@@ -57,15 +57,15 @@ public class LightLocalizer {
 				} else {
 					// Second line on x axis
 
-					if (odo.getAng() < thetaX1) {
+					if (odo.getAng() > thetaX1) {
 						// If wraparound occured (360 -> 0) then change original
-						// theta to -360 to accomodate
-						thetaX1 -= 360;
+						// theta to +360 to accomodate
+						thetaX1 += 360;
 					}
 
-					thetaX2 = odo.getAng() - thetaX1;
+					thetaX2 = Math.abs(thetaX1 - odo.getAng());
 					this.lcd.addInfo("thetaX2: ", thetaX2);
-					newY = -lightSensorDistance * Math.cos((thetaX2) / 2);
+					newY = -lightSensorDistance * Math.cos((Math.toRadians(thetaX2)) / 2);
 				}
 			} else {
 				// Odd therefore lines on y axis (vertical)
@@ -76,15 +76,15 @@ public class LightLocalizer {
 				} else {
 					// Second line on Y axis
 
-					if (odo.getAng() < thetaY1) {
+					if (odo.getAng() > thetaY1) {
 						// If wraparound occured (360 -> 0) then change original
-						// theta to -360 to accomodate
-						thetaY1 -= 360;
+						// theta to +360 to accomodate
+						thetaY1 += 360;
 					}
 
-					thetaY2 = odo.getAng() - thetaY1;
+					thetaY2 = Math.abs(thetaY1 - odo.getAng());
 					this.lcd.addInfo("thetaY2: ", thetaY2);
-					newX = -lightSensorDistance * Math.cos(thetaY2 / 2);
+					newX = -lightSensorDistance * Math.cos(Math.toRadians(thetaY2) / 2);
 				}
 
 			}
@@ -93,7 +93,7 @@ public class LightLocalizer {
 			}
 
 		}
-
+		nav.setSpeeds(0, 0);
 		deltaThetaY = 90 - (thetaY1 - 180) + thetaY2 / 2;
 		deltaThetaX = 90 - (thetaX1 - 180) + thetaX2 / 2;
 		deltaTheta = (deltaThetaY + deltaThetaX) / 2;
@@ -104,6 +104,7 @@ public class LightLocalizer {
 		
 		nav.travelTo(0, 0);
 		nav.turnTo(0, true);
+		pause();
 	}
 
 	public void pause() {
