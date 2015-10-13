@@ -37,8 +37,8 @@ public class LCDInfo implements TimerListener {
 		LCD.drawString("X: ", 0, 0);
 		LCD.drawString("Y: ", 0, 1);
 		LCD.drawString("H: ", 0, 2);
-		LCD.drawString(formattedDoubleToString((pos[0] * 10),2), 3, 0);
-		LCD.drawString(formattedDoubleToString((pos[1] * 10),2), 3, 1);
+		LCD.drawString(formattedDoubleToString((pos[0]),2), 3, 0);
+		LCD.drawString(formattedDoubleToString((pos[1]),2), 3, 1);
 		LCD.drawString(formattedDoubleToString((pos[2]),2), 3, 2);
 
 		// added a customizable new text field for USS or color data.
