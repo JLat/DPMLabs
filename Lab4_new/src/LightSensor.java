@@ -1,3 +1,5 @@
+import java.util.LinkedList;
+
 import lejos.robotics.SampleProvider;
 
 public class LightSensor extends Thread {
@@ -9,6 +11,7 @@ public class LightSensor extends Thread {
 	private boolean calibrated;
 	private double woodValue, currentValue, lineDifference;
 	private int calibrationCounter;
+	private LinkedList<Double> recent = new LinkedList<Double>();
 
 	public LightSensor(SampleProvider sensor, float[] data, int lineThreshold) {
 		this.sensor = sensor;
@@ -24,6 +27,8 @@ public class LightSensor extends Thread {
 
 			sensor.fetchSample(data, 0);
 			currentValue = 100 * data[0];
+			
+			smoothValue();
 
 			try {
 				Thread.sleep(50);
@@ -31,6 +36,17 @@ public class LightSensor extends Thread {
 			} // Poor man's timed sampling
 		}
 	}
+	
+	public void smoothValue(){
+		this.recent.addLast(this.currentValue);
+		if(this.recent.size()>3){
+			this.recent.removeFirst();
+		}
+		this.currentValue = getAverage(recent);
+	}
+	
+	
+	
 
 	public double getValue() {
 		return this.currentValue;
@@ -54,6 +70,19 @@ public class LightSensor extends Thread {
 			return woodValue - currentValue > lineDifference;
 		}
 		return false;
+	}
+	
+	
+	public double getAverage(LinkedList<Double> list){
+		if(list.isEmpty()){
+			return 0;
+		}else{
+			int sum=0;
+			for(Double d: list){
+				sum +=d;
+			}
+			return sum/list.size();
+		}
 	}
 
 }

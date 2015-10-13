@@ -35,6 +35,8 @@ public class USLocalizer {
 
 			// rotate the robot until it sees no wall
 			rotateUntilOpen("right");
+
+			//this.lcd.addTempMessage("Open Space!",3);
 			rotateUntilWall("right");
 			// a wall was observed.
 
@@ -132,8 +134,7 @@ public class USLocalizer {
 		LocalEV3.get().getAudio().systemSound(0);
 		this.lcd.addInfo("Dback: ", distanceToBackWall);
 
-		// somehow we have to divide those values by 10... maybe an error in the
-		// given Odometer ?
+		// set the new position.
 		pos[0] = (-26.5 + distanceToLeftWall);
 		pos[1] = (-26.5 + distanceToBackWall);
 		pos[2] = 270;
@@ -141,11 +142,10 @@ public class USLocalizer {
 		// update the odometer position
 		odo.setPosition(pos, new boolean[] { true, true, true });
 
-		// turn towards 90 degrees (parallel to left wall)
-		exit();
-		nav.travelTo(0,0);
+		// turn towards 0 degrees (parallel to back wall)
 		nav.turnTo(0, true);
-		exit();
+		pause();
+		this.lcd.clearAdditionalInfo();
 
 	}
 
@@ -162,9 +162,15 @@ public class USLocalizer {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
 		}
-		while (distance >= detectionRatio * distanceCap) {
+		
+//		long counter = System.currentTimeMillis();
+//		long delta = System.currentTimeMillis()-counter;
+		
+		while (distance >= detectionRatio * distanceCap// && delta < 500
+				) {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
+			//delta = System.currentTimeMillis()-counter;
 		}
 	}
 
@@ -177,24 +183,23 @@ public class USLocalizer {
 		}
 
 		// rotate the robot until it sees open space.
+
+		// int distance = smoothUs.getProcessedDistance();
+		int distance = smoothUs.getProcessedDistance();
+//		long counter = System.currentTimeMillis();
+//		long delta = System.currentTimeMillis()-counter;
+//		int counter = 0;
 		
 		
-		//int distance = smoothUs.getProcessedDistance();
-		int distance = 0;
-		int counter = 0;
-		
-		while (distance <= detectionRatio * distanceCap) {
+		while (distance < distanceCap
+				) {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
-		}
-		while (distance <= distanceCap && counter <10) {
-			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
-			distance = smoothUs.getProcessedDistance();
-			counter++;
+			//delta = System.currentTimeMillis()-counter;
 		}
 	}
 
-	public void exit() {
+	public void pause() {
 		while (Button.waitForAnyPress() != Button.ID_DOWN)
 			System.exit(0);
 	}

@@ -37,26 +37,34 @@ public class LCDInfo implements TimerListener {
 		LCD.drawString("X: ", 0, 0);
 		LCD.drawString("Y: ", 0, 1);
 		LCD.drawString("H: ", 0, 2);
-		LCD.drawString(formattedDoubleToString((pos[0]),2), 3, 0);
-		LCD.drawString(formattedDoubleToString((pos[1]),2), 3, 1);
-		LCD.drawString(formattedDoubleToString((pos[2]),2), 3, 2);
+		LCD.drawString(formattedDoubleToString((pos[0]), 2), 3, 0);
+		LCD.drawString(formattedDoubleToString((pos[1]), 2), 3, 1);
+		LCD.drawString(formattedDoubleToString((pos[2]), 2), 3, 2);
 
 		// added a customizable new text field for USS or color data.
 		updateValue();
 		LCD.drawString(additionalTextLabel, 0, 3);
 		LCD.drawString(additionalText, additionalTextLabel.length(), 3);
-		int i=4;
-		
-		//display all additional information.
-		for(String element : additionalInfo){
-			String[] parts = element.split(",");
-			String label = parts[0];
-			String data = parts[1];
-			LCD.drawString(label, 0, i);
-			LCD.drawString(data, label.length(), i);
+		int i = 4;
+
+		// display all additional information.
+
+		// in order to avoid ConcurrentModificationException, we iterate over a
+		// copy of the object such that the iterator doesnt throw an exception.
+		ArrayList<String> temp = new ArrayList<String>(additionalInfo);
+		for (String element : temp) {
+			if(element.contains(",")){
+				String[] parts = element.split(",");
+				String label = parts[0];
+				String data = parts[1];
+				LCD.drawString(label, 0, i);
+				LCD.drawString(data, label.length(), i);
+			}else{
+				LCD.drawString(element, 0, i);
+			}
+			
 			i++;
 		}
-		
 	}
 
 	public void setSensor(SmoothUSSensor Uss) {
@@ -68,10 +76,12 @@ public class LCDInfo implements TimerListener {
 		this.lSensor = lSensor;
 		this.source = "lSensor";
 	}
-	public void addInfo(String Label, double info){
-		this.additionalInfo.add(Label +","+ formattedDoubleToString(info,2));
+
+	public void addInfo(String Label, double info) {
+		this.additionalInfo.add(Label + "," + formattedDoubleToString(info, 2));
 	}
-	public void clearAdditionalInfo(){
+
+	public void clearAdditionalInfo() {
 		this.additionalInfo.clear();
 	}
 
@@ -88,16 +98,26 @@ public class LCDInfo implements TimerListener {
 		this.additionalTextLabel = label;
 		this.additionalText = text;
 	}
-	
+
 	public void setAddText(String label, double text) {
 		this.additionalTextLabel = label;
-		this.additionalText = formattedDoubleToString(text,2);
+		this.additionalText = formattedDoubleToString(text, 2);
 	}
-	
-	
-	public void setSource(String sourceName){
+
+	public void setSource(String sourceName) {
 		this.source = sourceName;
 	}
+	
+//	public void addTempMessage(String message, int seconds){
+//		long startTime = System.currentTimeMillis();
+//		long delay = System.currentTimeMillis()-startTime;
+//		this.additionalInfo.add(message);
+//		while(delay/1000 < seconds){
+//			// do nothing!
+//		}
+//		this.additionalInfo.remove(message);
+//	}
+	
 
 	private static String formattedDoubleToString(double x, int places) {
 		String result = "";
