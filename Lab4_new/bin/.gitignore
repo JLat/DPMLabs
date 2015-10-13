@@ -1,9 +1,9 @@
 /LCDInfo.class
 /Lab4.class
 /LightLocalizer.class
+/LightSensor.class
 /Navigation.class
 /Odometer.class
 /SmoothUSSensor.class
 /USLocalizer$LocalizationType.class
 /USLocalizer.class
-/LightSensor.class

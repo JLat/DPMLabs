@@ -155,7 +155,7 @@ public class SmoothUSSensor extends Thread {
 	public int getRawDistance() {
 		return this.rawDistance;
 	}
-
+	
 	public void clear() {
 		this.recent.clear();
 	}
