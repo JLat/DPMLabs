@@ -62,13 +62,14 @@ public class Lab4 {
 		// perform the ultrasonic localization
 		// USLocalizer usl = new USLocalizer(odo,
 
-		//USLocalizer usl = new USLocalizer(odo, USLocalizer.LocalizationType.FALLING_EDGE, lcd);
-		//usl.doLocalization();
+		USLocalizer usl = new USLocalizer(odo, USLocalizer.LocalizationType.FALLING_EDGE, lcd);
+		usl.doLocalization();
 
-		// nav.travelTo(-5, -5);
-		// nav.turnTo(0, true);
+		nav.travelTo(-5, -5);
+		nav.turnTo(0, true);
 
 		// perform the light sensor localization
+		//odo.setPosition(new double[]{-5.0,-5.0,0}, new boolean[]{true,true,true});
 		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav, lcd);
 		lsl.doLocalization();
 

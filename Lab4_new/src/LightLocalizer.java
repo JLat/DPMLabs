@@ -7,7 +7,7 @@ public class LightLocalizer {
 	private LightSensor lSensor;
 	private Navigation nav;
 	public static float ROTATION_SPEED = 60;
-	private int lineDifference = 20;
+	private int lineDifference = 30;
 	private LCDInfo lcd;
 
 	// TODO: Change this to find proper distance
@@ -25,19 +25,18 @@ public class LightLocalizer {
 		this.lcd.setSensor(lSensor);
 		// initiate required variables.
 		double thetaX1 = 0, thetaX2 = 0, thetaY1 = 0, thetaY2 = 0, newX = 0, newY = 0, deltaTheta, deltaThetaX,
-				deltaThetaY;
-		
-		while(!this.lSensor.isCalibrated()){
+				deltaThetaY, deltaX=0, deltaY=0;
+
+		while (!this.lSensor.isCalibrated()) {
 			// do nothing.
 		}
-		this.lcd.addInfo("Calib: ", this.lSensor.getWoodValue());
-		
-		
+		// this.lcd.addInfo("Calib: ", this.lSensor.getWoodValue());
+
 		pause();
 
 		// Assuming starting with robot facing 0 degrees (not sure if this is
 		// correct)
-		
+
 		// Rotate,detect 4 lines and collect the data needed
 		for (int i = 1; i <= 4; i++) {
 
@@ -53,36 +52,36 @@ public class LightLocalizer {
 				if (thetaX1 == 0) {
 					// This is the first line on X axis
 					thetaX1 = odo.getAng();
-					//this.lcd.addInfo("thetax1: ", thetaX1);
+					this.lcd.addInfo("thetax1: ", thetaX1);
 				} else {
 					// Second line on x axis
 
-					if (odo.getAng() > thetaX1) {
-						// If wraparound occured (360 -> 0) then change original
-						// theta to +360 to accomodate
-						thetaX1 += 360;
-					}
+					// if (odo.getAng() > thetaX1) {
+					// // If wraparound occured (360 -> 0) then change original
+					// // theta to +360 to accomodate
+					// thetaX1 += 360;
+					// }
+					//
+					// thetaX2 = Math.abs(thetaX1 - odo.getAng());
 
-					thetaX2 = Math.abs(thetaX1 - odo.getAng());
+					thetaX2 = odo.getAng();
+
+					deltaX = AngleTraveledFromTo(thetaX1, odo.getAng());
 					this.lcd.addInfo("thetaX2: ", thetaX2);
-					newY = -lightSensorDistance * Math.cos((Math.toRadians(thetaX2)) / 2);
+
+					newY = -lightSensorDistance * Math.cos((Math.toRadians(deltaX)) / 2);
 				}
 			} else {
 				// Odd therefore lines on y axis (vertical)
 				if (thetaY1 == 0) {
 					// This is the first line on Y axis
 					thetaY1 = odo.getAng();
-					//this.lcd.addInfo("thetaY1: ", thetaY1);
+					this.lcd.addInfo("thetaY1: ", thetaY1);
 				} else {
 					// Second line on Y axis
-
-					if (odo.getAng() > thetaY1) {
-						// If wraparound occured (360 -> 0) then change original
-						// theta to +360 to accomodate
-						thetaY1 += 360;
-					}
-
-					thetaY2 = Math.abs(thetaY1 - odo.getAng());
+					thetaY2 = odo.getAng();
+					deltaY= AngleTraveledFromTo(thetaY1, odo.getAng());
+					
 					this.lcd.addInfo("thetaY2: ", thetaY2);
 					newX = -lightSensorDistance * Math.cos(Math.toRadians(thetaY2) / 2);
 				}
@@ -94,14 +93,14 @@ public class LightLocalizer {
 
 		}
 		nav.setSpeeds(0, 0);
-		deltaThetaY = 90 - (thetaY1 - 180) + thetaY2 / 2;
-		deltaThetaX = 90 - (thetaX1 - 180) + thetaX2 / 2;
+
+		deltaThetaY = 180 - thetaY2 - deltaY / 2;
+		deltaThetaX = 270 - thetaX2 - deltaX / 2;
 		deltaTheta = (deltaThetaY + deltaThetaX) / 2;
 
 		odo.setPosition(new double[] { newX, newY, odo.getAng() + deltaTheta }, new boolean[] { true, true, true });
 		pause();
-		
-		
+
 		nav.travelTo(0, 0);
 		nav.turnTo(0, true);
 		pause();
@@ -110,6 +109,16 @@ public class LightLocalizer {
 	public void pause() {
 		while (Button.waitForAnyPress() != Button.ID_DOWN)
 			System.exit(0);
+	}
+
+	public double AngleTraveledFromTo(double startingAngle, double endAngle) {
+		// assumption made that the angles are decreasing while the robot is
+		// moving, i.e. the robot is turning right.
+		if(startingAngle<endAngle){
+			return 360-(endAngle-startingAngle);
+		}else{
+			return startingAngle-endAngle;
+		}
 	}
 
 }
