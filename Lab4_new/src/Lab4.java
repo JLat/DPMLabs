@@ -72,6 +72,8 @@ public class Lab4 {
 		//odo.setPosition(new double[]{-5.0,-5.0,0}, new boolean[]{true,true,true});
 		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav, lcd);
 		lsl.doLocalization();
+		
+		
 
 	}
 

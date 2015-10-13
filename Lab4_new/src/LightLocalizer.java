@@ -25,75 +25,87 @@ public class LightLocalizer {
 		this.lcd.setSensor(lSensor);
 		// initiate required variables.
 		double thetaX1 = 0, thetaX2 = 0, thetaY1 = 0, thetaY2 = 0, newX = 0, newY = 0, deltaTheta, deltaThetaX,
-				deltaThetaY, deltaX=0, deltaY=0;
+				deltaThetaY, deltaX = 0, deltaY = 0;
 
 		while (!this.lSensor.isCalibrated()) {
-			// do nothing.
 		}
+
+		// add the calibrated value to the LCD.
 		// this.lcd.addInfo("Calib: ", this.lSensor.getWoodValue());
 
 		pause();
 
-		// Assuming starting with robot facing 0 degrees (not sure if this is
-		// correct)
+		// Assuming starting with robot facing approximately 0 degrees
 
 		// Rotate,detect 4 lines and collect the data needed
 		for (int i = 1; i <= 4; i++) {
 
+			// while no line is detected, rotate.
 			while (!lSensor.seesLine()) {
 				nav.setSpeeds(+ROTATION_SPEED, -ROTATION_SPEED);
 			}
-			// Line has been found, stop rotating
-			nav.setSpeeds(0, 0);
+
 			LocalEV3.get().getAudio().systemSound(0);
 
 			if (i % 2 == 1) {
-				// Even therefore lines on x axis (horizontal)
+				// i is the line number. Our axes are defined such that the
+				// first line it detects is the negative X axis value, then the
+				// positive Y value, and so on.
+
+				// if thetaX1 is not yet set,
 				if (thetaX1 == 0) {
 					// This is the first line on X axis
 					thetaX1 = odo.getAng();
 					this.lcd.addInfo("thetax1: ", thetaX1);
+
 				} else {
 					// Second line on x axis
-
-					// if (odo.getAng() > thetaX1) {
-					// // If wraparound occured (360 -> 0) then change original
-					// // theta to +360 to accomodate
-					// thetaX1 += 360;
-					// }
-					//
-					// thetaX2 = Math.abs(thetaX1 - odo.getAng());
-
 					thetaX2 = odo.getAng();
-
-					deltaX = AngleTraveledFromTo(thetaX1, odo.getAng());
 					this.lcd.addInfo("thetaX2: ", thetaX2);
+					
+					// set the difference between the two angles.
+					deltaX = AngleTraveledFromTo(thetaX1, odo.getAng());
 
+					// set the new Y coordinate.
 					newY = -lightSensorDistance * Math.cos((Math.toRadians(deltaX)) / 2);
 				}
+				
 			} else {
+				
 				// Odd therefore lines on y axis (vertical)
+				
+				//if thetaY1 has not been set yet
 				if (thetaY1 == 0) {
 					// This is the first line on Y axis
+					
 					thetaY1 = odo.getAng();
 					this.lcd.addInfo("thetaY1: ", thetaY1);
+					
 				} else {
 					// Second line on Y axis
 					thetaY2 = odo.getAng();
-					deltaY= AngleTraveledFromTo(thetaY1, odo.getAng());
-					
+					deltaY = AngleTraveledFromTo(thetaY1, odo.getAng());
+
 					this.lcd.addInfo("thetaY2: ", thetaY2);
-					newX = -lightSensorDistance * Math.cos(Math.toRadians(thetaY2) / 2);
+					
+					// set new X coordinate.
+					newX = -lightSensorDistance * Math.cos(Math.toRadians(deltaY) / 2);
 				}
 
 			}
+			
+			// this loop gets the robot off a line so that it doesnt detect it twice.
 			while (lSensor.seesLine()) {
 				nav.setSpeeds(+ROTATION_SPEED, -ROTATION_SPEED);
 			}
 
 		}
+		
+		// stop the motors when all lines have been detected.
 		nav.setSpeeds(0, 0);
 
+		
+		//calculate the deltaTheta values with respect to our set of coordinates.
 		deltaThetaY = 180 - thetaY2 - deltaY / 2;
 		deltaThetaX = 270 - thetaX2 - deltaX / 2;
 		deltaTheta = (deltaThetaY + deltaThetaX) / 2;
@@ -114,10 +126,10 @@ public class LightLocalizer {
 	public double AngleTraveledFromTo(double startingAngle, double endAngle) {
 		// assumption made that the angles are decreasing while the robot is
 		// moving, i.e. the robot is turning right.
-		if(startingAngle<endAngle){
-			return 360-(endAngle-startingAngle);
-		}else{
-			return startingAngle-endAngle;
+		if (startingAngle < endAngle) {
+			return 360 - (endAngle - startingAngle);
+		} else {
+			return startingAngle - endAngle;
 		}
 	}
 
