@@ -9,6 +9,9 @@ public class LightSensor extends Thread {
 	private float[] data;
 	private SampleProvider sensor;
 	private boolean calibrated;
+
+	// Value of the wood used as a baseline, current reading of the light sensor
+	// and the difference of reading needed to distinguish a line
 	private double woodValue, currentValue, lineDifference;
 	private int calibrationCounter;
 	private LinkedList<Double> recent = new LinkedList<Double>();
@@ -22,7 +25,7 @@ public class LightSensor extends Thread {
 
 	public void run() {
 		while (true) {
-
+			// Calibrate sensor once
 			if (!calibrated)
 				calibrate();
 

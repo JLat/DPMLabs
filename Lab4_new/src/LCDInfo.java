@@ -67,20 +67,24 @@ public class LCDInfo implements TimerListener {
 		}
 	}
 
+	//Set sensor mode to USS
 	public void setSensor(SmoothUSSensor Uss) {
 		this.USS = Uss;
 		this.source = "USS";
 	}
 
+	//Set sensor mode to light sensor
 	public void setSensor(LightSensor lSensor) {
 		this.lSensor = lSensor;
 		setSource("lSensor");
 	}
-
+	
+	//Add info to be displayed onto screen
 	public void addInfo(String Label, double info) {
 		this.additionalInfo.add(Label + "," + formattedDoubleToString(info, 2));
 	}
 
+	//Clear additional information on lcd display
 	public void clearAdditionalInfo() {
 		this.additionalInfo.clear();
 	}
@@ -95,6 +99,7 @@ public class LCDInfo implements TimerListener {
 			setAddText("","");
 		}
 	}
+
 
 	public void setAddText(String label, String text) {
 		this.additionalTextLabel = label;

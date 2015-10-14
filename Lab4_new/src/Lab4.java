@@ -1,12 +1,10 @@
 /* Lab 4 - Localization: Group 58
  * Joel Lat
- * Fabrice Normadine
+ * Fabrice Normadin
 */
 
 
-import lejos.hardware.*;
 import lejos.hardware.ev3.LocalEV3;
-import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.*;
@@ -21,7 +19,6 @@ public class Lab4 {
 	// Color sensor port connected to input S2
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
-	private static final Port usPort = LocalEV3.get().getPort("S1");
 	private static final Port colorPort = LocalEV3.get().getPort("S2");
 
 	int buttonChoice = 0;
@@ -76,7 +73,5 @@ public class Lab4 {
 		// perform the light sensor localization
 		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav, lcd);
 		lsl.doLocalization();
-
 	}
-
 }
