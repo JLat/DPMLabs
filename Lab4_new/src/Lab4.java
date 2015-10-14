@@ -1,3 +1,9 @@
+/* Lab 4 - Localization: Group 58
+ * Joel Lat
+ * Fabrice Normadine
+*/
+
+
 import lejos.hardware.*;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
@@ -60,20 +66,16 @@ public class Lab4 {
 		Navigation nav = new Navigation(odo);
 
 		// perform the ultrasonic localization
-		// USLocalizer usl = new USLocalizer(odo,
-
 		USLocalizer usl = new USLocalizer(odo, USLocalizer.LocalizationType.FALLING_EDGE, lcd);
 		usl.doLocalization();
 
+		//Travel to (-5,-5) and prepare for light localization
 		nav.travelTo(-5, -5);
 		nav.turnTo(0, true);
 
 		// perform the light sensor localization
-		//odo.setPosition(new double[]{-5.0,-5.0,0}, new boolean[]{true,true,true});
 		LightLocalizer lsl = new LightLocalizer(odo, colorValue, colorData, nav, lcd);
 		lsl.doLocalization();
-		
-		
 
 	}
 

@@ -36,7 +36,7 @@ public class USLocalizer {
 			// rotate the robot until it sees no wall
 			rotateUntilOpen("right");
 
-			//this.lcd.addTempMessage("Open Space!",3);
+			// this.lcd.addTempMessage("Open Space!",3);
 			rotateUntilWall("right");
 			// a wall was observed.
 
@@ -62,7 +62,8 @@ public class USLocalizer {
 			// add the value of the angle to the LCD.
 			this.lcd.addInfo("angleB: ", angleB);
 			if (angleA < angleB) {
-				//TODO: play around on these values if the angle reported in the first part is off. (ideal case is 45-225)
+				// TODO: play around on these values if the angle reported in
+				// the first part is off. (ideal case is 45-225)
 				delta = 40.0 - (angleB + angleA) / 2;
 			} else {
 				// (angleA>angleB)
@@ -102,13 +103,11 @@ public class USLocalizer {
 			this.lcd.addInfo("angleB: ", angleB);
 
 			if (angleA > angleB) {
-				//TODO: those are for the rising edge case, ignore it.
 				delta = 40.0 - (angleB + angleA) / 2;
 			} else {
 				// (angleA<angleB)
 				delta = 220.0 - (angleB + angleA) / 2;
 			}
-
 		}
 
 		// current odometer heading - delta = real current heading
@@ -161,15 +160,15 @@ public class USLocalizer {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
 		}
-		
-//		long counter = System.currentTimeMillis();
-//		long delta = System.currentTimeMillis()-counter;
-		
+
+		// long counter = System.currentTimeMillis();
+		// long delta = System.currentTimeMillis()-counter;
+
 		while (distance >= detectionRatio * distanceCap// && delta < 500
-				) {
+		) {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
-			//delta = System.currentTimeMillis()-counter;
+			// delta = System.currentTimeMillis()-counter;
 		}
 	}
 
@@ -185,12 +184,12 @@ public class USLocalizer {
 
 		// int distance = smoothUs.getProcessedDistance();
 		int distance = smoothUs.getProcessedDistance();
-		
+
 		while (distance < distanceCap) {
 			nav.setSpeeds(dir * ROTATION_SPEED, -dir * ROTATION_SPEED);
 			distance = smoothUs.getProcessedDistance();
-			//delta = System.currentTimeMillis()-counter;
-		}		
+			// delta = System.currentTimeMillis()-counter;
+		}
 	}
 
 	public void pause() {

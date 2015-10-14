@@ -110,16 +110,6 @@ public class LCDInfo implements TimerListener {
 		this.source = sourceName;
 	}
 	
-//	public void addTempMessage(String message, int seconds){
-//		long startTime = System.currentTimeMillis();
-//		long delay = System.currentTimeMillis()-startTime;
-//		this.additionalInfo.add(message);
-//		while(delay/1000 < seconds){
-//			// do nothing!
-//		}
-//		this.additionalInfo.remove(message);
-//	}
-	
 
 	private static String formattedDoubleToString(double x, int places) {
 		String result = "";

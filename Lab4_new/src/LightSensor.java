@@ -13,6 +13,7 @@ public class LightSensor extends Thread {
 	private int calibrationCounter;
 	private LinkedList<Double> recent = new LinkedList<Double>();
 
+	// Main constructor
 	public LightSensor(SampleProvider sensor, float[] data, int lineThreshold) {
 		this.sensor = sensor;
 		this.data = data;
@@ -27,7 +28,7 @@ public class LightSensor extends Thread {
 
 			sensor.fetchSample(data, 0);
 			currentValue = 100 * data[0];
-			
+
 			smoothValue();
 
 			try {
@@ -36,17 +37,14 @@ public class LightSensor extends Thread {
 			} // Poor man's timed sampling
 		}
 	}
-	
-	public void smoothValue(){
+
+	public void smoothValue() {
 		this.recent.addLast(this.currentValue);
-		if(this.recent.size()>3){
+		if (this.recent.size() > 3) {
 			this.recent.removeFirst();
 		}
 		this.currentValue = getAverage(recent);
 	}
-	
-	
-	
 
 	public double getValue() {
 		return this.currentValue;
@@ -72,25 +70,24 @@ public class LightSensor extends Thread {
 		}
 		return false;
 	}
-	
-	
-	public double getAverage(LinkedList<Double> list){
-		if(list.isEmpty()){
+
+	public double getAverage(LinkedList<Double> list) {
+		if (list.isEmpty()) {
 			return 0;
-		}else{
-			double sum=0;
-			for(Double d: list){
-				sum +=d;
+		} else {
+			double sum = 0;
+			for (Double d : list) {
+				sum += d;
 			}
-			return sum/list.size();
+			return sum / list.size();
 		}
 	}
-	
-	public double getWoodValue(){
+
+	public double getWoodValue() {
 		return this.woodValue;
 	}
-	
-	public boolean isCalibrated(){
+
+	public boolean isCalibrated() {
 		return this.calibrated;
 	}
 }
