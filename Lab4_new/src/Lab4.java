@@ -20,7 +20,7 @@ public class Lab4 {
 	private static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 	private static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 	private static final Port colorPort = LocalEV3.get().getPort("S2");
-
+ 
 	int buttonChoice = 0;
 
 	public static void main(String[] args) {
