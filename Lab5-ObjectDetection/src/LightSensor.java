@@ -22,26 +22,12 @@ public class LightSensor extends Thread {
 		while (true) {
 
 			sensor.fetchSample(colorData, 0);
-			sensor.fetchSample(colorData, 1);
-			sensor.fetchSample(colorData, 2);
 
 			this.rValue = colorData[0] * 1024;
 			this.gValue = colorData[1] * 1024;
 			this.bValue = colorData[2] * 1024;
 
-			// TODO: Ok here I'll explain the way someone else showed me to do
-			// it, and it seems to work flawlessly for him.
-			/*
-			 * Basicly when you hit a Blue block, the ratio of blue compared to
-			 * the other modes is a lot higher. I'm super tired I'm gonna head
-			 * home soon.
-			 * 
-			 * I'll build a function that automaticly sets some boolean for what
-			 * kind of block it is currently seeing.
-			 * 
-			 * 
-			 * 
-			 */
+			
 
 			try {
 				Thread.sleep(50);
@@ -62,5 +48,19 @@ public class LightSensor extends Thread {
 	public double getBlueValue() {
 		return this.bValue;
 	}
+	
+	// method waits until a certain amount of data has been properly connected, then, if it sees a block, then it 
+	public void seesBlueBlock(){
+		
+		
+		
+		
+		
+		
+	}
+	
+	
+	
+	
 
 }

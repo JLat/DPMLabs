@@ -33,18 +33,18 @@ public class Lab5 {
 		// grab a block
 		LCD.addInfo("Grabbing Block");
 		nav.claw.grab();
+		LCD.removeLastAddedInfo();
+		nav.goForward(10);
 		
+		LCD.addInfo("Opening Claw");
+		nav.claw.open();
 		LCD.removeLastAddedInfo();
 		
 		LocalEV3.get().getAudio().systemSound(0);
-		nav.goForward(10);
-
-		LocalEV3.get().getAudio().systemSound(0);
-
-		nav.claw.open();
-		LocalEV3.get().getAudio().systemSound(0);
 		
-		
+		LCD.addInfo("R: ");
+		LCD.addInfo("G: ");
+		LCD.addInfo("B: ");
 		while(Button.waitForAnyPress()!=Button.ID_ESCAPE);
 		System.exit(0);
 
@@ -82,7 +82,7 @@ public class Lab5 {
 					LCD.addInfo("Object Detected");
 
 					// Determine if it is wood block or Styrofoam
-					if (detectType(lSensor.getValue()) == WOOD_BLOCK)
+					if (detectType(lSensor.getBlueValue()) == WOOD_BLOCK)
 						LCD.addInfo("Not Block");
 					else
 						LCD.addInfo("Block");
