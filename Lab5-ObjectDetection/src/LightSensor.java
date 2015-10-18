@@ -36,6 +36,7 @@ public class LightSensor extends Thread {
 			}
 		}
 	}
+	
 
 	public double getRedValue() {
 		return this.rValue;
@@ -50,13 +51,8 @@ public class LightSensor extends Thread {
 	}
 	
 	// method waits until a certain amount of data has been properly connected, then, if it sees a block, then it 
-	public void seesBlueBlock(){
-		
-		
-		
-		
-		
-		
+	public boolean seesBlueBlock(){
+		return this.bValue>this.rValue;	
 	}
 	
 	

@@ -81,6 +81,14 @@ public class SmoothUSSensor extends Thread {
 			} // Poor man's timed sampling
 		}
 	}
+	
+	public void setParameters(int recentListSize, int PlusOffset, int MinusOffset, int UpperBound, int LowerBound){
+		this.recentListSize = recentListSize;
+		this.plusOffset = PlusOffset;
+		this.minusOffset = MinusOffset;
+		this.upperBound = UpperBound;
+		this.lowerBound = LowerBound;
+	}
 
 	public void processDistance() {
 		// the distance is constrained as to remove unpleasant values.
@@ -111,7 +119,7 @@ public class SmoothUSSensor extends Thread {
 		 * allow a faster response to walls than to open space.
 		 * 
 		 */
-		if (recent.size() >= recentListSize / 2) {
+		if (recent.size() == recentListSize) {
 			processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
 			processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
 		}
