@@ -19,7 +19,7 @@ public class Lab5 {
 			
 		Odometer odo = new Odometer(leftMotor, rightMotor, 30, true);
 		
-		Navigation nav = new Navigation(odo);
+
 		
 		//creating the sensors.
 		LightSensor lSensor = new LightSensor("S4", "RGB");
@@ -29,11 +29,13 @@ public class Lab5 {
 		USS.start();
 
 		Scanner scanner = new Scanner(lSensor, USS);
-		
 		LCD = new LCDInfo(odo, USS, lSensor);
+		Navigation nav = new Navigation(odo,scanner, LCD);
 		
-		part1(USS,lSensor,scanner);
 		
+		
+		//part1(USS,lSensor,scanner);
+		nav.part2();
 		
 		int buttonChoice;
 		do {

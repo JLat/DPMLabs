@@ -9,18 +9,35 @@
  * 
  * Movement control class (turnTo, travelTo, flt, localize)
  */
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation {
 	final static int FAST = 100, SLOW = 60, ACCELERATION = 2000;
-	final static double DEG_ERR = 3, CM_ERR = 1.0;
+	final static double DEG_ERR = 3, CM_ERR = 1.0, LIGHT_SENSOR_OFFSET = 8.8;
 	private Odometer odometer;
+	private Scanner scanner;
+	private LCDInfo LCD;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	public Claw claw = new Claw();
 
+	
 	public Navigation(Odometer odo) {
 		this.odometer = odo;
+		EV3LargeRegulatedMotor[] motors = this.odometer.getMotors();
+		this.leftMotor = motors[0];
+		this.rightMotor = motors[1];
 
+		// set acceleration
+		this.leftMotor.setAcceleration(ACCELERATION);
+		this.rightMotor.setAcceleration(ACCELERATION);
+	}
+	
+	public Navigation(Odometer odo, Scanner scan, LCDInfo lcd) {
+		this.odometer = odo;
+		this.scanner = scan;
+		this.LCD = lcd;
 		EV3LargeRegulatedMotor[] motors = this.odometer.getMotors();
 		this.leftMotor = motors[0];
 		this.rightMotor = motors[1];
@@ -126,6 +143,126 @@ public class Navigation {
 			this.setSpeeds(0, 0);
 		}
 	}
+	
+
+	// This is the method that will search for objects
+	public void part2() {
+		// Navigate board and located locate styrofoam block
+		boolean check = false;
+		
+		/*
+		
+		//TODO: Change to i< 2 to try larger attempt
+		for (int i = 0; i < 2; i++) {
+			check = searchForObject(i);
+			if (check) {
+				break;
+			}
+		}*/
+		
+		searchForObject(0);
+
+		// Block not found
+		if (!check) {
+			LocalEV3.get().getAudio().systemSound(2);
+			System.exit(0);
+		}
+
+		// Grab object
+		turnTo(odometer.getAng() + 180, true);
+		grabBlock();
+
+		// Travel to top right corner
+		travelTo(75, 75);
+
+		// Drop off block
+		turnTo(odometer.getAng() + 180, true);
+		dropBlock();
+
+	}
+
+	// Navigate board searching for object, return true if block has been found
+	public boolean searchForObject(int searchSize) {
+		// Travel to back wall, face 90 deg and turn sensor to -90 (0 deg)
+		travelTo(20 + searchSize * 30, -15);
+		turnTo(90, true);
+		scanner.turnTo(-90,false);
+
+		// Move forwards searching for object until we reach top of the square
+		while (odometer.getY() < 20 + searchSize * 30) {
+			// if object stop and approach to detect type of object
+			if (scanner.seesObject()) {
+				setSpeeds(0, 0);
+				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
+					// If block exit method
+					return true;
+				}
+			}
+			setSpeeds(FAST, FAST);
+		}
+
+		setSpeeds(0, 0);
+
+		// Slowly rotate searching for object until facing 180 degrees
+		while (odometer.getAng() < 180) {
+			// if object stop and approach to detect type of object
+			if (scanner.seesObject()) {
+				setSpeeds(0, 0);
+				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
+					// If block exit method
+					return true;
+				}
+			}
+			setSpeeds(-SLOW, SLOW);
+		}
+		setSpeeds(0, 0);
+
+		// Travel to left wall searching for object
+		while (odometer.getX() > 15) {
+			if (scanner.seesObject()) {
+				// if object stop and approach to detect type of object
+				setSpeeds(0, 0);
+				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
+					// If block exit method
+					return true;
+				}
+			}
+			setSpeeds(FAST, FAST);
+		}
+
+		return false;
+	}
+
+	// Approach located object and check type
+	// Return true if object is block
+	// Return false if not block and return to original position
+	public boolean approachAndCheck(double x, double y, double angle) {
+
+		// Turn robot to face object detected
+		double deltaTheta = Math.atan2(LIGHT_SENSOR_OFFSET, scanner.getDistance());
+		turnTo(odometer.getAng() - deltaTheta, true);
+
+		// Reset scanner position
+		scanner.turnTo(0,false);
+
+		// Slowly move towards object
+		while (scanner.getDistance() > 10) {
+			setSpeeds(SLOW, SLOW);
+		}
+		setSpeeds(0, 0);
+
+		// Check if block is styrofoam, return true if it is
+		if (scanner.scan()) {
+			return true;
+		}
+
+		// Not styrofoam block return to previous location
+		travelTo(x, y);
+		turnTo(angle, true);
+		return false;
+	}
+	
+	
 
 	/*
 	 * Go foward a set distance in cm
