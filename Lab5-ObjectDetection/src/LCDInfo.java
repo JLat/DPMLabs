@@ -9,18 +9,18 @@ public class LCDInfo implements TimerListener {
 	public static final int LCD_REFRESH = 100;
 	private Odometer odo;
 	private Timer lcdTimer;
-	private String additionalTextLabel = " ";
-	private String additionalText = " ";
-	private String source = " ";
 	private TextLCD LCD = LocalEV3.get().getTextLCD();
 	private SmoothUSSensor USS;
 	private LightSensor lSensor;
+	private String lastAdded = " ";
 
 	// arrays for displaying data
 	private double[] pos;
 	private ArrayList<String> additionalInfo = new ArrayList<String>();
 
-	public LCDInfo(Odometer odo) {
+	public LCDInfo(Odometer odo, SmoothUSSensor USS, LightSensor lSensor) {
+		this.USS = USS;
+		this.lSensor = lSensor;
 		this.odo = odo;
 		this.lcdTimer = new Timer(LCD_REFRESH, this);
 
@@ -41,78 +41,83 @@ public class LCDInfo implements TimerListener {
 		LCD.drawString(formattedDoubleToString((pos[1]), 2), 3, 1);
 		LCD.drawString(formattedDoubleToString((pos[2]), 2), 3, 2);
 
-		// added a customizable new text field for USS or color data.
-		updateValue();
-		LCD.drawString(additionalTextLabel, 0, 3);
-		LCD.drawString(additionalText, additionalTextLabel.length(), 3);
-		int i = 4;
+		
+		int i = 3;
 
 		// display all additional information.
 
 		// in order to avoid ConcurrentModificationException, we iterate over a
 		// copy of the object such that the iterator doesnt throw an exception.
 		ArrayList<String> temp = new ArrayList<String>(additionalInfo);
+		
+		
+		//TODO: Joel please take a look at this just so you're not confused when trying to add new info later on.
 		for (String element : temp) {
-			if(element.contains(",")){
-				String[] parts = element.split(",");
-				String label = parts[0];
-				String data = parts[1];
-				LCD.drawString(label, 0, i);
-				LCD.drawString(data, label.length(), i);
+			// if the element contains "D: ", then it represent the ultrasonic Distance value. we update the value.
+			if(element.contains("D: ")){
+				element = "D: "+(this.USS.getProcessedDistance());
+				LCD.drawString(element,0, i);
+			}else if(element.contains("R: ")){
+				element = "R: "+formattedDoubleToString((this.lSensor.getRedValue()),2);
+				LCD.drawString(element,0, i);
+			}else if(element.contains("G: ")){
+				element = "G: "+formattedDoubleToString((this.lSensor.getGreenValue()),2);
+				LCD.drawString(element,0, i);
+			}else if(element.contains("B: ")){
+				element = "B: "+formattedDoubleToString((this.lSensor.getBlueValue()),2);
+				LCD.drawString(element,0, i);
 			}else{
-				LCD.drawString(element, 0, i);
+				if(element.contains(",")){
+					String[] parts = element.split(",");
+					String label = parts[0];
+					String data = parts[1];
+					LCD.drawString(label, 0, i);
+					LCD.drawString(data, label.length(), i);
+				}else{
+					LCD.drawString(element, 0, i);
+				}
 			}
 			
 			i++;
 		}
 	}
-
-	//Set sensor mode to USS
-	public void setSensor(SmoothUSSensor Uss) {
-		this.USS = Uss;
-		this.source = "USS";
-	}
-
-	//Set sensor mode to light sensor
-	public void setSensor(LightSensor lSensor) {
-		this.lSensor = lSensor;
-		setSource("lSensor");
-	}
 	
 	//Add info to be displayed onto screen
 	public void addInfo(String Label, double info) {
-		this.additionalInfo.add(Label + "," + formattedDoubleToString(info, 2));
+		String text = Label + "," + formattedDoubleToString(info, 2);
+		this.additionalInfo.add(text);
+		this.lastAdded=text;
+	}
+	
+	public void addInfo(String info) {
+		this.additionalInfo.add(info);
+		this.lastAdded=info;
+	}
+	public void removeInfo(String info){
+		if(info.equals("D: ")){
+			for(String element : this.additionalInfo){
+				if(element.contains("D: ")){
+					this.additionalInfo.remove(element);
+				}
+			}
+		}
+		
+		
+		
+		
+		if(additionalInfo.contains(info)){
+			this.additionalInfo.remove(info);
+		}
+	}
+	public void removeLastAddedInfo(){
+		if(this.lastAdded!=" " && this.additionalInfo.contains(lastAdded)){
+			this.additionalInfo.remove(lastAdded);
+		}
 	}
 
 	//Clear additional information on lcd display
 	public void clearAdditionalInfo() {
 		this.additionalInfo.clear();
-	}
-
-	// update the additional info value using its source.
-	public void updateValue() {
-		if (this.source.equals("USS")) {
-			setAddText("D: ", ""+USS.getProcessedDistance());
-		} else if (this.source.equals("lSensor")) {
-			setAddText("L: ", lSensor.getValue());
-		}else{
-			setAddText("","");
-		}
-	}
-
-
-	public void setAddText(String label, String text) {
-		this.additionalTextLabel = label;
-		this.additionalText = text;
-	}
-
-	public void setAddText(String label, double text) {
-		this.additionalTextLabel = label;
-		this.additionalText = formattedDoubleToString(text, 2);
-	}
-
-	public void setSource(String sourceName) {
-		this.source = sourceName;
 	}
 	
 

@@ -16,6 +16,7 @@ public class Navigation {
 	final static double DEG_ERR = 3, CM_ERR = 1.0;
 	private Odometer odometer;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
+	public Claw claw = new Claw();
 
 	public Navigation(Odometer odo) {
 		this.odometer = odo;
@@ -75,7 +76,8 @@ public class Navigation {
 	 */
 	public void travelTo(double x, double y) {
 		double minAng;
-		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+		//while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
+		while (distanceBetween(odometer.getX(), odometer.getY(), x,y)>=CM_ERR){
 			minAng = (Math.atan2(y - odometer.getY(), x - odometer.getX())) * (180.0 / Math.PI);
 			if (minAng < 0)
 				minAng += 360.0;
@@ -130,11 +132,27 @@ public class Navigation {
 	 */
 	public void goForward(double distance) {
 		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance,
-				Math.cos(Math.toRadians(this.odometer.getAng())) * distance);
+				Math.sin(Math.toRadians(this.odometer.getAng())) * distance);
 
 	}
 
 	public static double distanceBetween(double x1, double y1, double x2, double y2) {
 		return Math.sqrt(Math.pow((y2 - y1), 2) + Math.pow((x2 - x1), 2));
+	}
+	
+	public void grabBlock(){
+		turnTo(this.odometer.getAng()+180,true);
+		goForward(15);
+		this.claw.grab();
+		goForward(15);
+		turnTo(this.odometer.getAng()+180,true);
+	}
+	
+	public void dropBlock(){
+		turnTo(this.odometer.getAng()+180,true);
+		this.claw.open();
+		goForward(15);
+		turnTo(this.odometer.getAng()+180,true);
+		
 	}
 }

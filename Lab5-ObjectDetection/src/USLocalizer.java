@@ -29,7 +29,6 @@ public class USLocalizer {
 	public void doLocalization() {
 		double[] pos = new double[3];
 		double angleA, angleB, delta;
-		lcd.setSensor(smoothUs);
 
 		if (locType == LocalizationType.FALLING_EDGE) {
 
