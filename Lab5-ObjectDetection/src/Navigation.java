@@ -15,6 +15,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation {
 	final static int FAST = 100, SLOW = 60, ACCELERATION = 2000;
+	//TODO: the USS_SENSOR_OFFSET value is closer to 12 in real life.
 	final static double DEG_ERR = 3, CM_ERR = 1.0, USS_SENSOR_OFFSET = 8.8;
 	private Odometer odometer;
 	private Scanner scanner;

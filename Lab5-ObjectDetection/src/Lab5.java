@@ -15,7 +15,7 @@ public class Lab5 {
 		
 		
 		
-//		try{
+		try{
 			
 		Odometer odo = new Odometer(leftMotor, rightMotor, 30, true);
 		
@@ -33,9 +33,9 @@ public class Lab5 {
 		
 		Navigation nav = new Navigation(odo,scanner, LCD);
 		
-		USLocalizer localizer = new USLocalizer(nav, odo, USS, USLocalizer.LocalizationType.FALLING_EDGE, LCD);
-		USS.setParameters(10, 5, 5, 50, 0);
-		localizer.doLocalization();
+		
+		USLocalizer localizer = new USLocalizer(nav, odo, USS, LCD);
+		localizer.doLocalization(40);
 		pause();
 		
 		
@@ -54,9 +54,9 @@ public class Lab5 {
 		LCD.clearAdditionalInfo();
 		
 		
-//		}catch(Exception e){
-//			System.exit(0);
-//		}
+		}catch(IllegalArgumentException e){
+			System.exit(0);
+		}
 		
 	}
 	public static void pause(){

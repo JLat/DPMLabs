@@ -94,19 +94,10 @@ public class LCDInfo implements TimerListener {
 		this.lastAdded=info;
 	}
 	public void removeInfo(String info){
-		if(info.equals("D: ")){
-			for(String element : this.additionalInfo){
-				if(element.contains("D: ")){
-					this.additionalInfo.remove(element);
-				}
+		for(String element: this.additionalInfo){
+			if(element.toLowerCase().contains(info.toLowerCase())){
+				this.additionalInfo.remove(element);
 			}
-		}
-		
-		
-		
-		
-		if(additionalInfo.contains(info)){
-			this.additionalInfo.remove(info);
 		}
 	}
 	public void removeLastAddedInfo(){

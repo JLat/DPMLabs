@@ -119,7 +119,7 @@ public class SmoothUSSensor extends Thread {
 		 * allow a faster response to walls than to open space.
 		 * 
 		 */
-		if (recent.size() == recentListSize) {
+		if (recent.size() >= 0.5*recentListSize) {
 			processedDistance = Math.min(previousAverage + plusOffset, processedDistance);
 			processedDistance = Math.max(processedDistance, previousAverage - minusOffset);
 		}
