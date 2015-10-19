@@ -6,7 +6,7 @@ public class Scanner{
 	
 	public LightSensor lSensor;
 	public SmoothUSSensor USS;
-	private int objectDistanceThreshold;
+	private int objectDistanceThreshold = 40;
 	private EV3MediumRegulatedMotor motor = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
 	// ratio between motor tachometer angle and real angle of the sensor.
 	public double pConstant = 0.50847;
