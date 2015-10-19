@@ -22,7 +22,6 @@ public class Navigation {
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	public Claw claw = new Claw();
 
-	
 	public Navigation(Odometer odo) {
 		this.odometer = odo;
 		EV3LargeRegulatedMotor[] motors = this.odometer.getMotors();
@@ -33,7 +32,7 @@ public class Navigation {
 		this.leftMotor.setAcceleration(ACCELERATION);
 		this.rightMotor.setAcceleration(ACCELERATION);
 	}
-	
+
 	public Navigation(Odometer odo, Scanner scan, LCDInfo lcd) {
 		this.odometer = odo;
 		this.scanner = scan;
@@ -93,24 +92,22 @@ public class Navigation {
 	 */
 	public void travelTo(double x, double y) {
 		double minAng;
-		//while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {
-		while (distanceBetween(odometer.getX(), odometer.getY(), x,y)>=CM_ERR){
+		// while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y -
+		// odometer.getY()) > CM_ERR) {
+		while (distanceBetween(odometer.getX(), odometer.getY(), x, y) >= CM_ERR) {
 			minAng = (Math.atan2(y - odometer.getY(), x - odometer.getX())) * (180.0 / Math.PI);
 			if (minAng < 0)
 				minAng += 360.0;
-			
+
 			this.turnTo(minAng, false);
-			
+
 			// set the speeds slower if the robot is close to objective.
-			if(distanceBetween(odometer.getX(), odometer.getY(), x, y)<5){
-				this.setSpeeds(FAST/2, FAST/2);
-			}else{
+			if (distanceBetween(odometer.getX(), odometer.getY(), x, y) < 5) {
+				this.setSpeeds(FAST / 2, FAST / 2);
+			} else {
 				this.setSpeeds(FAST, FAST);
 			}
-			
-			
-			
-			
+
 		}
 		this.setSpeeds(0, 0);
 	}
@@ -143,23 +140,18 @@ public class Navigation {
 			this.setSpeeds(0, 0);
 		}
 	}
-	
 
 	// This is the method that will search for objects
 	public void part2() {
 		// Navigate board and located locate styrofoam block
 		boolean check = false;
-		
+
 		/*
-		
-		//TODO: Change to i< 2 to try larger attempt
-		for (int i = 0; i < 2; i++) {
-			check = searchForObject(i);
-			if (check) {
-				break;
-			}
-		}*/
-		
+		 * 
+		 * //TODO: Change to i< 2 to try larger attempt for (int i = 0; i < 2;
+		 * i++) { check = searchForObject(i); if (check) { break; } }
+		 */
+
 		check = searchForObject(0);
 		scanner.turnTo(0, false);
 		// Block not found
@@ -169,13 +161,13 @@ public class Navigation {
 		}
 
 		// Grab object
-		//grabBlock();
+		// grabBlock();
 
 		// Travel to top right corner
-		//travelTo(75, 75);
+		// travelTo(75, 75);
 
 		// Drop off block
-		//dropBlock();
+		// dropBlock();
 
 	}
 
@@ -184,13 +176,13 @@ public class Navigation {
 		// Travel to back wall, face 90 deg and turn sensor to -90 (0 deg)
 		travelTo(20 + searchSize * 30, -15);
 		turnTo(90, true);
-		scanner.turnTo(-90,false);
+		scanner.turnTo(-90, false);
 		Lab5.pause();
 		LCD.addInfo("LEG - 1");
 		LCD.addInfo("D: ");
 		// Move forwards searching for object until we reach top of the square
 		while (odometer.getY() < 20 + searchSize * 30) {
-			
+
 			setSpeeds(FAST, FAST);
 			// if object stop and approach to detect type of object
 			if (scanner.seesObject()) {
@@ -205,14 +197,14 @@ public class Navigation {
 		}
 		setSpeeds(0, 0);
 		Lab5.pause();
-		
+
 		LCD.clearAdditionalInfo();
 		LCD.addInfo("LEG - 2");
 		LCD.addInfo("D: ");
 		// Slowly rotate searching for object until facing 180 degrees
 		while (odometer.getAng() < 180) {
 			setSpeeds(-SLOW, SLOW);
-			
+
 			// if object stop and approach to detect type of object
 			if (scanner.seesObject()) {
 				setSpeeds(0, 0);
@@ -223,11 +215,11 @@ public class Navigation {
 					return true;
 				}
 			}
-			
+
 		}
 		setSpeeds(0, 0);
 		Lab5.pause();
-		
+
 		LCD.clearAdditionalInfo();
 		LCD.addInfo("LEG - 3");
 		LCD.addInfo("D: ");
@@ -244,9 +236,9 @@ public class Navigation {
 					return true;
 				}
 			}
-			
+
 		}
-		//No object viewed
+		// No object viewed
 		return false;
 	}
 
@@ -254,28 +246,35 @@ public class Navigation {
 	// Return true if object is block
 	// Return false if not block and return to original position
 	public boolean approachAndCheck(double x, double y, double angle) {
+
 		double distanceToBlock = scanner.getDistance();
 		// Turn robot to face object detected
-		//double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
-		turnTo(odometer.getAng()  +scanner.getAngle()//deltaTheta
-				,true);
-		
+		// double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
+		double deltaTheta = convertThetaToRobot(scanner.getAngle(), scanner.getDistance());
+
+		turnTo(odometer.getAng() - deltaTheta, true);
+
 		Lab5.pause();
-		//Scan for block, move forward after each scan if no block is found
+		// Scan for block, move forward after each scan if no block is found
 		scanner.scan();
-		while(!scanner.blockDetected()){
+		while (!scanner.blockDetected()) {
 			goForward(5);
 			scanner.scan();
 		}
-		LCD.addInfo("Block Detected");
-		
+
+		if (scanner.blockDetected()) {
+			LCD.addInfo("Block Detected");
+		} else {
+			LCD.addInfo("weird, no block found");
+		}
+
 		Lab5.pause();
-	
+
 		// Check if block is blue, return true if it is
 		if (scanner.blueBlockDetected()) {
 			// Turn robot to face object detected based on angle of scanner
-			double deltaTheta = convertThetaToRobot(scanner.getAngle());
-			turnTo(odometer.getAng() + deltaTheta, true);
+			deltaTheta = convertThetaToRobot(scanner.getAngle(), scanner.getDistance());
+			turnTo(odometer.getAng() - deltaTheta, true);
 			LCD.addInfo("Blue Block Found");
 			Lab5.pause();
 			return true;
@@ -289,43 +288,43 @@ public class Navigation {
 		Lab5.pause();
 		return false;
 	}
-	
-	//Convert heading of light sensor to angle in relation to robot
-	public double convertThetaToRobot(double angle){
-		//X component of displacement
-		double offsetX = Math.sin(Math.toRadians(angle));
-		//Y component of displacement
-		double offsetY = Math.cos(Math.toRadians(angle)) + USS_SENSOR_OFFSET;
-		//Angle offset between sensor and robot
-		return Math.atan2(offsetX,offsetY);
+
+	// Convert heading of light sensor to angle in relation to robot
+	public double convertThetaToRobot(double angle, int distance) {
+		// X component of displacement
+		double offsetX = Math.sin(-Math.toRadians(angle))*distance;
+		// Y component of displacement
+		double offsetY = Math.cos(Math.toRadians(angle))*distance + USS_SENSOR_OFFSET;
+		// Angle offset between sensor and robot
+		return Math.atan2(offsetY, offsetX);
 	}
 
 	/*
 	 * Go foward a set distance in cm
 	 */
 	public void goForward(double distance) {
-		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance,
-				Math.sin(Math.toRadians(this.odometer.getAng())) * distance);
+		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance + odometer.getX(),
+				Math.sin(Math.toRadians(this.odometer.getAng())) * distance + odometer.getY());
 
 	}
 
 	public static double distanceBetween(double x1, double y1, double x2, double y2) {
 		return Math.sqrt(Math.pow((y2 - y1), 2) + Math.pow((x2 - x1), 2));
 	}
-	
-	public void grabBlock(){
-		turnTo(this.odometer.getAng()+180,true);
-		goForward(15);
+
+	public void grabBlock() {
+		turnTo(this.odometer.getAng() + 180, true);
+		// goForward(15);
 		this.claw.grab();
 		goForward(15);
-		turnTo(this.odometer.getAng()+180,true);
+		turnTo(this.odometer.getAng() + 180, true);
 	}
-	
-	public void dropBlock(){
-		turnTo(this.odometer.getAng()+180,true);
+
+	public void dropBlock() {
+		turnTo(this.odometer.getAng() + 180, true);
 		this.claw.open();
 		goForward(15);
-		turnTo(this.odometer.getAng()+180,true);
-		
+		turnTo(this.odometer.getAng() + 180, true);
+
 	}
 }

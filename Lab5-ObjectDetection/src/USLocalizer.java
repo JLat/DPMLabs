@@ -16,12 +16,12 @@ public class USLocalizer {
 	private int distanceCap = 30;
 	private double detectionRatio = 0.7;
 
-	public USLocalizer(Odometer odo, SmoothUSSensor smoothUs, LocalizationType locType, LCDInfo LCD) {
+	public USLocalizer(Navigation nav, Odometer odo, SmoothUSSensor smoothUs, LocalizationType locType, LCDInfo LCD) {
 		this.odo = odo;
 		this.locType = LocalizationType.RISING_EDGE;
 		// added for convenience.
 		this.lcd = LCD;
-		this.nav = new Navigation(odo);
+		this.nav = nav;
 		this.smoothUs = smoothUs;
 		this.smoothUs.start();
 	}
