@@ -251,33 +251,53 @@ public class Navigation {
 	// Return true if object is block
 	// Return false if not block and return to original position
 	public boolean approachAndCheck(double x, double y, double angle) {
-
+		double distanceToBlock = scanner.getDistance();
 		// Turn robot to face object detected
-		double deltaTheta = Math.atan2(USS_SENSOR_OFFSET, scanner.getDistance());
+		double deltaTheta = Math.atan2(USS_SENSOR_OFFSET, distanceToBlock);
 		turnTo(odometer.getAng() - deltaTheta, true);
-
-		// Reset scanner position
-		scanner.turnTo(0,false);
-
-		// Slowly move towards object
-		while (scanner.getDistance() > 10) {
-			setSpeeds(SLOW, SLOW);
+		
+		//Move halfway to block
+		goForward(distanceToBlock /2);
+		
+		Lab5.pause();
+		//Scan for block, move forward after each scan if no block is found
+		scanner.scan();
+		while(!scanner.blockDetected()){
+			goForward(5);
+			scanner.scan();
 		}
-		setSpeeds(0, 0);
-
-		// Check if block is styrofoam, return true if it is
-		if (scanner.scan()) {
+		LCD.addInfo("Block Detected");
+		
+		Lab5.pause();
+	
+		// Check if block is blue, return true if it is
+		if (scanner.blueBlockDetected()) {
+			// Turn robot to face object detected based on angle of scanner
+			deltaTheta = convertThetaToRobot(scanner.getAngle());
+			turnTo(odometer.getAng() + deltaTheta, true);
+			LCD.addInfo("Blue Block Found");
+			Lab5.pause();
 			return true;
 		}
 
 		// Not styrofoam block return to previous location
+		LCD.addInfo("Wood Block Found");
 		scanner.turnTo(-90, false);
 		travelTo(x, y);
 		turnTo(angle, true);
+		Lab5.pause();
 		return false;
 	}
 	
-	
+	//Convert heading of light sensor to angle in relation to robot
+	public double convertThetaToRobot(double angle){
+		//X component of displacement
+		double offsetX = Math.sin(Math.toRadians(angle));
+		//Y component of displacement
+		double offsetY = Math.cos(Math.toRadians(angle));
+		//Angle offset between sensor and robot
+		return Math.atan2(offsetY, offsetX);
+	}
 
 	/*
 	 * Go foward a set distance in cm
