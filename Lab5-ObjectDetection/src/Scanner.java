@@ -25,7 +25,7 @@ public class Scanner{
 		return this.motor.getTachoCount()*pConstant;
 	}
 	
-	public boolean turnTo(double angle, boolean detect){
+	public void turnTo(double angle, boolean detect){
 		double currentAngle = this.motor.getTachoCount()*this.pConstant;
 		double error = currentAngle - angle;
 		while(Math.abs(error)>=1){
@@ -46,12 +46,12 @@ public class Scanner{
 					this.blueBlockDetected=true;
 					this.motor.stop();
 					LocalEV3.get().getAudio().systemSound(0);
-					return true;
+					break;
 				}else{
 					this.blueBlockDetected=false;
 					this.motor.stop();
 					LocalEV3.get().getAudio().systemSound(1);
-					return false;
+					break;
 				}
 			}
 
@@ -59,7 +59,6 @@ public class Scanner{
 			
 		}
 		this.motor.stop();
-		return false;
 	}
 	
 	public void setSpeed(int speed){
@@ -82,13 +81,11 @@ public class Scanner{
 		}
 	}
 	
-	public boolean scan(){
+	public void scan(){
 		this.blockDetected=false;
 		this.blueBlockDetected=false;
 		turnTo(-80,false);
-		if (turnTo(80,true))
-			return true;
-		return false;
+		turnTo(80,true);
 	}
 	
 	public boolean blockDetected(){

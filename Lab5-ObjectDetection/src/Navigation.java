@@ -187,6 +187,7 @@ public class Navigation {
 		scanner.turnTo(-90,false);
 		Lab5.pause();
 		LCD.addInfo("LEG - 1");
+		LCD.addInfo("D: ");
 		// Move forwards searching for object until we reach top of the square
 		while (odometer.getY() < 20 + searchSize * 30) {
 			
@@ -207,6 +208,7 @@ public class Navigation {
 		
 		LCD.clearAdditionalInfo();
 		LCD.addInfo("LEG - 2");
+		LCD.addInfo("D: ");
 		// Slowly rotate searching for object until facing 180 degrees
 		while (odometer.getAng() < 180) {
 			setSpeeds(-SLOW, SLOW);
@@ -228,6 +230,7 @@ public class Navigation {
 		
 		LCD.clearAdditionalInfo();
 		LCD.addInfo("LEG - 3");
+		LCD.addInfo("D: ");
 		// Travel to left wall searching for object
 		while (odometer.getX() > -15) {
 			setSpeeds(FAST, FAST);
@@ -253,11 +256,11 @@ public class Navigation {
 	public boolean approachAndCheck(double x, double y, double angle) {
 		double distanceToBlock = scanner.getDistance();
 		// Turn robot to face object detected
-		double deltaTheta = Math.atan2(USS_SENSOR_OFFSET, distanceToBlock);
-		turnTo(odometer.getAng() - deltaTheta, true);
+		double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
+		turnTo(odometer.getAng()  - deltaTheta, true);
 		
-		//Move halfway to block
-		goForward(distanceToBlock /2);
+		//Move 1/4 of the way to block
+		goForward(distanceToBlock /4);
 		
 		Lab5.pause();
 		//Scan for block, move forward after each scan if no block is found
@@ -294,9 +297,9 @@ public class Navigation {
 		//X component of displacement
 		double offsetX = Math.sin(Math.toRadians(angle));
 		//Y component of displacement
-		double offsetY = Math.cos(Math.toRadians(angle));
+		double offsetY = Math.cos(Math.toRadians(angle)) + USS_SENSOR_OFFSET;
 		//Angle offset between sensor and robot
-		return Math.atan2(offsetY, offsetX);
+		return Math.atan2(offsetX,offsetY);
 	}
 
 	/*
