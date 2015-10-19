@@ -13,16 +13,16 @@ public class USLocalizer {
 	private Navigation nav;
 	private SmoothUSSensor smoothUs;
 	private LCDInfo lcd;
-	private int distanceCap = 50;
+	private int distanceCap = 30;
 	private double detectionRatio = 0.7;
 
-	public USLocalizer(Odometer odo, LocalizationType locType, LCDInfo LCD) {
+	public USLocalizer(Odometer odo, SmoothUSSensor smoothUs, LocalizationType locType, LCDInfo LCD) {
 		this.odo = odo;
-		this.locType = locType;
+		this.locType = LocalizationType.RISING_EDGE;
 		// added for convenience.
 		this.lcd = LCD;
 		this.nav = new Navigation(odo);
-		this.smoothUs = new SmoothUSSensor(10, 3, 3, distanceCap, 0);
+		this.smoothUs = smoothUs;
 		this.smoothUs.start();
 	}
 
@@ -109,29 +109,11 @@ public class USLocalizer {
 		// current odometer heading - delta = real current heading
 		// hence, by turning to theta-delta, we are actually turning to theta.
 
-		nav.turnTo(180 - delta, true);
-		// clear the recent list of the smoothUs sensor, and wait until the
-		// list is full again to latch the distance towards the wall.
-		smoothUs.clear();
-		while (!smoothUs.isFull()) {
-		}
-		double distanceToLeftWall = smoothUs.getProcessedDistance();
-		LocalEV3.get().getAudio().systemSound(0);
-		this.lcd.addInfo("Dleft: ", distanceToLeftWall);
-
-		// turn to face back wall.
-		nav.turnTo(270 - delta, true);
-		smoothUs.clear();
-		while (!smoothUs.isFull()) {
-		}
-		double distanceToBackWall = smoothUs.getProcessedDistance();
-		LocalEV3.get().getAudio().systemSound(0);
-		this.lcd.addInfo("Dback: ", distanceToBackWall);
-
+		
 		// set the new position.
-		pos[0] = (-26.5 + distanceToLeftWall);
-		pos[1] = (-26.5 + distanceToBackWall);
-		pos[2] = 270;
+		pos[0] = (0);
+		pos[1] = (0);
+		pos[2] = 270-delta;
 
 		// update the odometer position
 		odo.setPosition(pos, new boolean[] { true, true, true });
