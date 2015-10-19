@@ -256,11 +256,9 @@ public class Navigation {
 	public boolean approachAndCheck(double x, double y, double angle) {
 		double distanceToBlock = scanner.getDistance();
 		// Turn robot to face object detected
-		double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
-		turnTo(odometer.getAng()  - deltaTheta, true);
-		
-		//Move 1/4 of the way to block
-		goForward(distanceToBlock /4);
+		//double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
+		turnTo(odometer.getAng()  +scanner.getAngle()//deltaTheta
+				,true);
 		
 		Lab5.pause();
 		//Scan for block, move forward after each scan if no block is found
@@ -276,7 +274,7 @@ public class Navigation {
 		// Check if block is blue, return true if it is
 		if (scanner.blueBlockDetected()) {
 			// Turn robot to face object detected based on angle of scanner
-			deltaTheta = convertThetaToRobot(scanner.getAngle());
+			double deltaTheta = convertThetaToRobot(scanner.getAngle());
 			turnTo(odometer.getAng() + deltaTheta, true);
 			LCD.addInfo("Blue Block Found");
 			Lab5.pause();
