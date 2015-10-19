@@ -15,7 +15,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Navigation {
 	final static int FAST = 100, SLOW = 60, ACCELERATION = 2000;
-	final static double DEG_ERR = 3, CM_ERR = 1.0, LIGHT_SENSOR_OFFSET = 8.8;
+	final static double DEG_ERR = 3, CM_ERR = 1.0, USS_SENSOR_OFFSET = 8.8;
 	private Odometer odometer;
 	private Scanner scanner;
 	private LCDInfo LCD;
@@ -160,8 +160,8 @@ public class Navigation {
 			}
 		}*/
 		
-		searchForObject(0);
-
+		check = searchForObject(0);
+		scanner.turnTo(0, false);
 		// Block not found
 		if (!check) {
 			LocalEV3.get().getAudio().systemSound(2);
@@ -169,15 +169,13 @@ public class Navigation {
 		}
 
 		// Grab object
-		turnTo(odometer.getAng() + 180, true);
-		grabBlock();
+		//grabBlock();
 
 		// Travel to top right corner
-		travelTo(75, 75);
+		//travelTo(75, 75);
 
 		// Drop off block
-		turnTo(odometer.getAng() + 180, true);
-		dropBlock();
+		//dropBlock();
 
 	}
 
@@ -187,49 +185,65 @@ public class Navigation {
 		travelTo(20 + searchSize * 30, -15);
 		turnTo(90, true);
 		scanner.turnTo(-90,false);
-
+		Lab5.pause();
+		LCD.addInfo("LEG - 1");
 		// Move forwards searching for object until we reach top of the square
 		while (odometer.getY() < 20 + searchSize * 30) {
+			
+			setSpeeds(FAST, FAST);
 			// if object stop and approach to detect type of object
 			if (scanner.seesObject()) {
 				setSpeeds(0, 0);
+				LCD.addInfo("Saw Object");
+				Lab5.pause();
 				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
 					// If block exit method
 					return true;
 				}
 			}
-			setSpeeds(FAST, FAST);
 		}
-
 		setSpeeds(0, 0);
-
+		Lab5.pause();
+		
+		LCD.clearAdditionalInfo();
+		LCD.addInfo("LEG - 2");
 		// Slowly rotate searching for object until facing 180 degrees
 		while (odometer.getAng() < 180) {
+			setSpeeds(-SLOW, SLOW);
+			
 			// if object stop and approach to detect type of object
 			if (scanner.seesObject()) {
 				setSpeeds(0, 0);
+				LCD.addInfo("Saw Object");
+				Lab5.pause();
 				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
 					// If block exit method
 					return true;
 				}
 			}
-			setSpeeds(-SLOW, SLOW);
+			
 		}
 		setSpeeds(0, 0);
-
+		Lab5.pause();
+		
+		LCD.clearAdditionalInfo();
+		LCD.addInfo("LEG - 3");
 		// Travel to left wall searching for object
-		while (odometer.getX() > 15) {
+		while (odometer.getX() > -15) {
+			setSpeeds(FAST, FAST);
 			if (scanner.seesObject()) {
 				// if object stop and approach to detect type of object
 				setSpeeds(0, 0);
+				LCD.addInfo("Saw Object");
+				Lab5.pause();
 				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
 					// If block exit method
 					return true;
 				}
 			}
-			setSpeeds(FAST, FAST);
+			
 		}
-
+		//No object viewed
 		return false;
 	}
 
@@ -239,7 +253,7 @@ public class Navigation {
 	public boolean approachAndCheck(double x, double y, double angle) {
 
 		// Turn robot to face object detected
-		double deltaTheta = Math.atan2(LIGHT_SENSOR_OFFSET, scanner.getDistance());
+		double deltaTheta = Math.atan2(USS_SENSOR_OFFSET, scanner.getDistance());
 		turnTo(odometer.getAng() - deltaTheta, true);
 
 		// Reset scanner position
@@ -257,6 +271,7 @@ public class Navigation {
 		}
 
 		// Not styrofoam block return to previous location
+		scanner.turnTo(-90, false);
 		travelTo(x, y);
 		turnTo(angle, true);
 		return false;
