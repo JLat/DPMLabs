@@ -9,6 +9,8 @@
  * 
  * Movement control class (turnTo, travelTo, flt, localize)
  */
+import java.util.ArrayList;
+
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -22,6 +24,7 @@ public class Navigation {
 	private LCDInfo LCD;
 	private EV3LargeRegulatedMotor leftMotor, rightMotor;
 	public Claw claw = new Claw();
+	private ArrayList<Integer> searched= new ArrayList<Integer>();
 
 	public Navigation(Odometer odo) {
 		this.odometer = odo;
@@ -141,172 +144,147 @@ public class Navigation {
 			this.setSpeeds(0, 0);
 		}
 	}
-
-	// This is the method that will search for objects
 	public void part2() {
 		// Navigate board and located locate styrofoam block
 		boolean check = false;
-
-		/*
-		 * 
-		 * //TODO: Change to i< 2 to try larger attempt for (int i = 0; i < 2;
-		 * i++) { check = searchForObject(i); if (check) { break; } }
-		 */
-
-		check = searchForObject(0);
+		
+		//TODO: Implement multiple checks until blue block is found
+		check = searchForObject();
 		scanner.turnTo(0, false);
+		
+		
 		// Block not found
 		if (!check) {
 			LocalEV3.get().getAudio().systemSound(2);
 			System.exit(0);
 		}
 
+		//TODO: Implement grabbing and taking block to finish
 		// Grab object
-		// grabBlock();
+		//grabBlock();
 
 		// Travel to top right corner
-		// travelTo(75, 75);
+		//travelTo(75, 75);
 
 		// Drop off block
-		// dropBlock();
-
+		//dropBlock();
+		Lab5.pause();
 	}
-
-	// Navigate board searching for object, return true if block has been found
-	public boolean searchForObject(int searchSize) {
-		// Travel to back wall, face 90 deg and turn sensor to -90 (0 deg)
-		travelTo(20 + searchSize * 30, -15);
-		turnTo(90, true);
-		scanner.turnTo(-90, false);
-		Lab5.pause();
-		LCD.addInfo("LEG - 1");
+	
+	//Search for block in field, return true if block is found, otherwise false
+	public boolean searchForObject(){
+		//Travel to and orient to starting position
+		travelTo(20,20);
+		turnTo(300,true);
 		LCD.addInfo("D: ");
-		// Move forwards searching for object until we reach top of the square
-		while (odometer.getY() < 20 + searchSize * 30) {
-
-			setSpeeds(FAST, FAST);
-			// if object stop and approach to detect type of object
-			if (scanner.seesObject()) {
-				setSpeeds(0, 0);
-				LCD.addInfo("Saw Object");
-				Lab5.pause();
-				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
-					// If block exit method
+		
+		//Rotate robot will searching for block
+		while(odometer.getAng() < 150 || odometer.getAng() > 250){
+			setSpeeds(-SLOW/2, SLOW/2);
+			
+			//If object is seen inside threshold then block is found
+			int distanceThreshold = getDistanceThreshold(odometer.getAng());
+			if (scanner.seesObject(distanceThreshold)){
+				setSpeeds(0,0);
+				//If block is a blue block exit method and return true
+				if(approachAndCheck(odometer.getAng())){
 					return true;
 				}
-			}
-		}
-		setSpeeds(0, 0);
-		Lab5.pause();
-
-		LCD.clearAdditionalInfo();
-		LCD.addInfo("LEG - 2");
-		LCD.addInfo("D: ");
-		// Slowly rotate searching for object until facing 180 degrees
-		while (odometer.getAng() < 180) {
-			setSpeeds(-SLOW, SLOW);
-
-			// if object stop and approach to detect type of object
-			if (scanner.seesObject()) {
-				setSpeeds(0, 0);
-				LCD.addInfo("Saw Object");
-				Lab5.pause();
-				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
-					// If block exit method
-					return true;
+				//Block was a wood block, rotate until no longer facing block then continue
+				else{
+					while(scanner.seesObject( distanceThreshold)){setSpeeds(-SLOW, SLOW);}
 				}
+				LCD.clearAdditionalInfo();
 			}
-
 		}
-		setSpeeds(0, 0);
-		Lab5.pause();
-
-		LCD.clearAdditionalInfo();
-		LCD.addInfo("LEG - 3");
-		LCD.addInfo("D: ");
-		// Travel to left wall searching for object
-		while (odometer.getX() > -15) {
-			setSpeeds(FAST, FAST);
-			if (scanner.seesObject()) {
-				// if object stop and approach to detect type of object
-				setSpeeds(0, 0);
-				LCD.addInfo("Saw Object");
-				Lab5.pause();
-				if (approachAndCheck(odometer.getX(), odometer.getY(), odometer.getAng())) {
-					// If block exit method
-					return true;
-				}
-			}
-
-		}
-		// No object viewed
 		return false;
 	}
-
+	//TODO: This is how i accounted for the walls being in the way, However it is currently unable to get the far corners near the wall
+	
+	//Return the desired value for the distance threshold to avoid the detection of walls
+	public int getDistanceThreshold(double robotAngle){
+		int output = 1000;
+		//Facing back wall, to avoid detecting wall tailor distance threshold by angle of robot
+		if (robotAngle > 280 && robotAngle < 355 ) {
+			output =  (int)(25 / Math.cos(Math.toRadians(360 - robotAngle - 30)));
+		}
+		
+		//Facing left wall
+		else if(robotAngle < 170 && robotAngle > 105){
+			output = (int)(25 / Math.cos(Math.toRadians(180 - robotAngle + 30)));
+		}
+		
+		//Not facing wall, return default distance threshold
+		return Math.min(80,output);
+	}
+	
 	// Approach located object and check type
 	// Return true if object is block
 	// Return false if not block and return to original position
-	public boolean approachAndCheck(double x, double y, double angle) {
-
+	public boolean approachAndCheck(double angle) {
 		double distanceToBlock = scanner.getDistance();
-		// Turn robot to face object detected
-		// double deltaTheta = Math.atan2(distanceToBlock,USS_SENSOR_OFFSET);
-		double deltaTheta = convertThetaToRobot(scanner.getAngle(), scanner.getDistance());
-
-		turnTo(odometer.getAng() - deltaTheta, true);
-
+		
+		//Move 15 cm from block
+		goForward(Math.max(15, distanceToBlock -15));
 		Lab5.pause();
-		// Scan for block, move forward after each scan if no block is found
+		
+		//Scan for block, move forward after each scan if no block is found
 		scanner.scan();
-		while (!scanner.blockDetected()) {
+		while(!scanner.blockDetected()){
 			goForward(5);
 			scanner.scan();
 		}
-
-		if (scanner.blockDetected()) {
-			LCD.addInfo("Block Detected");
-		} else {
-			LCD.addInfo("weird, no block found");
-		}
-
-		Lab5.pause();
-
+		
 		// Check if block is blue, return true if it is
 		if (scanner.blueBlockDetected()) {
 			// Turn robot to face object detected based on angle of scanner
-			deltaTheta = convertThetaToRobot(scanner.getAngle(), scanner.getDistance());
-			turnTo(odometer.getAng() - deltaTheta, true);
+			double deltaTheta = convertThetaToRobot(scanner.getAngle());
+			
+			//Just using the scanner angle works, and is a lot less complicated
+			turnTo(odometer.getAng() + //deltaTheta, true);
+					scanner.getAngle(),true);
 			LCD.addInfo("Blue Block Found");
-			Lab5.pause();
 			return true;
 		}
 
 		// Not styrofoam block return to previous location
 		LCD.addInfo("Wood Block Found");
-		scanner.turnTo(-90, false);
-		travelTo(x, y);
-		turnTo(angle, true);
+		scanner.turnTo(0,false);
+		
+		travelTo(20,20);
+		turnTo(angle + 30, true);
 		Lab5.pause();
 		return false;
 	}
-
-	// Convert heading of light sensor to angle in relation to robot
-	public double convertThetaToRobot(double angle, int distance) {
-		// X component of displacement
-		double offsetX = Math.sin(-Math.toRadians(angle))*distance;
-		// Y component of displacement
-		double offsetY = Math.cos(Math.toRadians(angle))*distance + USS_SENSOR_OFFSET;
-		// Angle offset between sensor and robot
-		return Math.atan2(offsetY, offsetX);
+	
+	//Convert heading of light sensor to angle in relation to robot
+	public double convertThetaToRobot(double angle){
+		//X component of displacement
+		double offsetX = Math.sin(Math.toRadians(angle));
+		//Y component of displacement
+		double offsetY = Math.cos(Math.toRadians(angle)) + USS_SENSOR_OFFSET;
+		//Angle offset between sensor and robot
+		return Math.atan2(offsetX,offsetY);
 	}
-
+	
 	/*
 	 * Go foward a set distance in cm
 	 */
 	public void goForward(double distance) {
 		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance + odometer.getX(),
 				Math.sin(Math.toRadians(this.odometer.getAng())) * distance + odometer.getY());
-
+	}
+	
+	//TODO: Implement going backwards to speed up return and to grab block
+	//FROM SQUARE DRIVER (LAB 2)
+	public void goBackward(double distance){
+		leftMotor.rotate(-convertDistance(2.093, 60.96), true);
+		rightMotor.rotate(-convertDistance(2.093, 60.96), false);
+		
+	}
+	//FROM SQUARE DRIVER (LAB 2)
+	private static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
 	}
 
 	public static double distanceBetween(double x1, double y1, double x2, double y2) {
@@ -315,7 +293,7 @@ public class Navigation {
 
 	public void grabBlock() {
 		turnTo(this.odometer.getAng() + 180, true);
-		// goForward(15);
+		// goBackward(15);
 		this.claw.grab();
 		goForward(15);
 		turnTo(this.odometer.getAng() + 180, true);

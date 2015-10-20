@@ -35,16 +35,19 @@ public class Lab5 {
 		
 		
 		USLocalizer localizer = new USLocalizer(nav, odo, USS, LCD);
-		localizer.doLocalization(40);
-		pause();
+		//localizer.doLocalization(40);
+		//pause();
 		
 		
 		USS.setParameters(10, 10, 15, 50, 0);
 		
 		//part1(USS,lSensor,scanner);
+		
+		USS.setParameters(10, 15,15,90, 0);
 		nav.part2();
 		
 		int buttonChoice;
+		LCD.clearAdditionalInfo();
 		do {
 			LCD.addInfo("OBJECT DETECT: RIGHT");
 			LCD.addInfo("SEARCH OBJECT: LEFT");
@@ -67,7 +70,7 @@ public class Lab5 {
 			if(choice==Button.ID_ESCAPE){
 				System.exit(0);
 			}else if(choice == Button.ID_RIGHT){
-				LCD.removeInfo("Esc to exit, Right to cont.");
+				LCD.removeLastAddedInfo();
 				break;
 			}else{
 				
