@@ -24,6 +24,8 @@ public class Scanner{
 		return this.motor.getTachoCount()*pConstant;
 	}
 	
+	//Turn sensor to desired angle,
+	//If detect is true also check is block is around and what type if one is viewed
 	public void turnTo(double angle, boolean detect){
 		double currentAngle = this.motor.getTachoCount()*this.pConstant;
 		double error = currentAngle - angle;
@@ -64,14 +66,13 @@ public class Scanner{
 		this.SPEED = speed;
 	}
 	
-	
-	
 	public void setMode(String mode){
 		if(mode.toLowerCase().equals("scan")){
 			
 		}
 	}
 	
+	//Determines if object is within distance threshold
 	public boolean seesObject(int objectDistanceThreshold){
 		if(this.USS.getProcessedDistance()<=objectDistanceThreshold){
 			return true;
@@ -80,8 +81,9 @@ public class Scanner{
 		}
 	}
 	
+	
+	//Scan area looking for object
 	public void scan(){
-		
 		this.blockDetected=false;
 		this.blueBlockDetected=false;
 		turnTo(-80,false);

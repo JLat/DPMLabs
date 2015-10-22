@@ -131,12 +131,16 @@ public class Navigation {
 		}
 	}
 
+	// Part 2 of the lab, finding, obtaining and delivering blue block
 	public void part2() {
+
 		// Navigate board and located locate styrofoam block
 		boolean check = searchForObject();
 		scanner.turnTo(0, false);
+
 		LCD.addInfo(check ? "Yes" : "No");
 		Lab5.pause();
+
 		// Block not found
 		if (!check) {
 			LocalEV3.get().getAudio().systemSound(2);
@@ -145,13 +149,15 @@ public class Navigation {
 
 		// TODO: Implement grabbing and taking block to finish
 		// Grab object
-		 grabBlock();
+		grabBlock();
 
 		// Travel to top right corner
-		 travelTo(75, 75);
+		travelTo(75, 75);
 
 		// Drop off block
-		 dropBlock();
+		dropBlock();
+
+		LCD.addInfo("Complete");
 		Lab5.pause();
 	}
 
@@ -167,15 +173,14 @@ public class Navigation {
 		while (odometer.getAng() < 155 || odometer.getAng() > 200) {
 			setSpeeds(-SLOW / 2, SLOW / 2);
 
-			// If object is seen inside threshold then block is found
-
+			// If object is seen inside threshold then block is in front of the
+			// robot
 			int distanceThreshold = getDistanceThreshold(odometer.getAng());
 			if (scanner.seesObject(distanceThreshold)) {
 				setSpeeds(0, 0);
 				turnTo(odometer.getAng() + 10, true);
 				double tempangle = odometer.getAng();
 
-				// Lab5.pause();
 				// If block is a blue block exit method and return true
 				if (approachAndCheck()) {
 					return true;
@@ -187,6 +192,10 @@ public class Navigation {
 					travelTo(20, 20);
 					scanner.turnTo(0, false);
 					turnTo(tempangle, true);
+
+					// To make sure robot is no longer facing object check 3
+					// times that no object is viewable before continuing
+
 					while (scanner.seesObject(distanceThreshold)
 							&& (odometer.getAng() < 155 || odometer.getAng() > 250)) {
 						while (scanner.seesObject(distanceThreshold)
@@ -195,44 +204,36 @@ public class Navigation {
 									&& (odometer.getAng() < 155 || odometer.getAng() > 250)) {
 								setSpeeds(-SLOW / 2, SLOW / 2);
 							}
-							// turn 15 degree more to avoid detecting wood block
-							// twice
 							turnTo(odometer.getAng() + 20, true);
 						}
 						turnTo(odometer.getAng() + 10, true);
 					}
-				}
-				// Allow sensor to reset
-				while (scanner.getDistance() < 80) {
 				}
 
 				LCD.clearAdditionalInfo();
 				LCD.addInfo("D: ");
 			}
 		}
-		setSpeeds(0,0);
+		setSpeeds(0, 0);
 		return behindWood(woodblock);
 	}
 
+	// If only wood block was found check behind the wooden blocj
 	public boolean behindWood(double angle) {
 		LCD.addInfo("Behind");
 		if (angle == -1) { // NO BLOCK WAS FOUND
 			return false;
 		} else if (angle < 25 || angle > 315) {
 			travelTo(20, 50);
-			turnTo(0,true);
+			turnTo(0, true);
+			
+			//Captures case where blue block was beside wooden block 
 			if (scanner.getDistance() <= 30)
 				return approachAndCheck();
 			travelTo(70, 70);
 			turnTo(270, true);
 			return approachAndCheck();
-		} else if (angle < 65) {
-			travelTo(60, 20);
-			travelTo(60, 40);
-			turnTo(90, true);
-			return approachAndCheck();
 		} else
-
 		{
 			travelTo(50, 20);
 			travelTo(70, 70);
@@ -241,8 +242,6 @@ public class Navigation {
 		}
 	}
 
-	// TODO: This is how i accounted for the walls being in the way, However it
-	// is currently unable to get the far corners near the wall
 
 	// Return the desired value for the distance threshold to avoid the
 	// detection of walls
@@ -265,15 +264,14 @@ public class Navigation {
 
 	// Approach located object and check type
 	// Return true if object is block
-	// Return false if not block and return to original position
+	// Return false if not block
 	public boolean approachAndCheck() {
 		double distanceToBlock = scanner.getDistance();
 
-		// Move 15 cm from block
+		// Move towards the block 
 		goForward(distanceToBlock / 2);
 
 		// Scan for block, move forward after each scan if no block is found
-
 		scanner.USS.setParameters(10, 10, 15, 50, 0);
 		scanner.scan();
 		while (!scanner.blockDetected()) {
@@ -281,50 +279,34 @@ public class Navigation {
 			scanner.scan();
 		}
 		scanner.USS.setParameters(10, 15, 15, 90, 0);
+		
 		// Check if block is blue, return true if it is
 		if (scanner.blueBlockDetected()) {
 			// Turn robot to face object detected based on angle of scanner
-			double deltaTheta = convertThetaToRobot(scanner.getAngle());
-
-			// Just using the scanner angle works, and is a lot less complicated
-			turnTo(odometer.getAng() + // deltaTheta, true);
-					((Math.abs(scanner.getAngle()) > 20) ? scanner.getAngle() : 0), true);
+			turnTo(odometer.getAng() + ((Math.abs(scanner.getAngle()) > 20) ? scanner.getAngle() : 0), true);
 			LCD.addInfo("Blue Block Found");
 			return true;
 		}
 
-		// Not styrofoam block return to previous location
+		// Not styrofoam block
 		LCD.addInfo("Wood Block Found");
-		// Lab5.pause();
 		return false;
 	}
 
-	// Convert heading of light sensor to angle in relation to robot
-	public double convertThetaToRobot(double angle) {
-		// X component of displacement
-		double offsetX = Math.sin(Math.toRadians(angle));
-		// Y component of displacement
-		double offsetY = Math.cos(Math.toRadians(angle)) + USS_SENSOR_OFFSET;
-		// Angle offset between sensor and robot
-		return Math.atan2(offsetX, offsetY);
-	}
-
-	/*
-	 * Go foward a set distance in cm
-	 */
+	
+	  //Go foward a set distance in cm
 	public void goForward(double distance) {
 		this.travelTo(Math.cos(Math.toRadians(this.odometer.getAng())) * distance + odometer.getX(),
 				Math.sin(Math.toRadians(this.odometer.getAng())) * distance + odometer.getY());
 	}
 
-	// TODO: Implement going backwards to speed up return and to grab block
 	// FROM SQUARE DRIVER (LAB 2)
+	//Go backwards a set distance in cm (used to grab block)
 	public void goBackward(double distance) {
 		leftMotor.setSpeed(250);
 		rightMotor.setSpeed(250);
 		leftMotor.rotate(-convertDistance(2.093, distance), true);
 		rightMotor.rotate(-convertDistance(2.093, distance), false);
-
 	}
 
 	// FROM SQUARE DRIVER (LAB 2)
@@ -338,7 +320,7 @@ public class Navigation {
 
 	public void grabBlock() {
 		turnTo(this.odometer.getAng() + 180, true);
-		claw.partialOpen(); 
+		claw.partialClose();
 		goBackward(10);
 		this.claw.grab();
 	}

@@ -1,15 +1,13 @@
-import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 
-public class USLocalizer2 {
-	public enum LocalizationType {
-		FALLING_EDGE, RISING_EDGE
-	};
 
+//Falling edge localization from Lab 4
+
+
+public class USLocalizer2 {
 	public static float ROTATION_SPEED = 60;
 
 	private Odometer odo;
-	private LocalizationType locType;
 	private Navigation nav;
 	private SmoothUSSensor uss;
 	private LCDInfo lcd;
@@ -18,13 +16,14 @@ public class USLocalizer2 {
 
 	public USLocalizer2(Navigation nav, Odometer odo, SmoothUSSensor uss, LCDInfo LCD) {
 		this.odo = odo;
-		// added for convenience.
 		this.lcd = LCD;
 		this.nav = nav;
 		this.uss = uss;
 	}
 
 	public void doLocalization(int Cap) {
+		
+		
 		distanceCap = Cap;
 		double[] pos = new double[3];
 		double angleA, angleB, delta;
@@ -89,6 +88,7 @@ public class USLocalizer2 {
 		// set the new position.
 		pos[0] = (-26.5 + distanceToLeftWall);
 		pos[1] = (-26.5 + distanceToBackWall);
+		//Offset because of error
 		pos[2] = 270 - 7;
 
 		// update the odometer position
@@ -96,7 +96,6 @@ public class USLocalizer2 {
 
 		// turn towards 0 degrees (parallel to back wall)
 		nav.turnTo(0, true);
-		Lab5.pause();
 		this.lcd.clearAdditionalInfo();
 
 	}

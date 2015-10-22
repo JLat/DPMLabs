@@ -34,17 +34,7 @@ public class Lab5 {
 		Navigation nav = new Navigation(odo,scanner, LCD);
 		
 		
-		USLocalizer2 localizer = new USLocalizer2(nav, odo, USS, LCD);
-		//localizer.doLocalization(30);
-		//pause();
-		
-		
-		USS.setParameters(10, 10, 15, 50, 0);
-		
-		//part1(USS,lSensor,scanner);
-		
-		USS.setParameters(10, 15,15,90, 0);
-		nav.part2();
+		USLocalizer2 localizer = new USLocalizer2(nav, odo, USS, LCD);		
 		
 		int buttonChoice;
 		LCD.clearAdditionalInfo();
@@ -55,6 +45,19 @@ public class Lab5 {
 			buttonChoice = Button.waitForAnyPress();
 		} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
 		LCD.clearAdditionalInfo();
+		
+		
+		if (buttonChoice == Button.ID_RIGHT) {
+			USS.setParameters(10, 10, 15, 50, 0);
+			part1(USS,lSensor,scanner);
+		}
+		else{
+			USS.setParameters(10, 10, 15, 50, 0);
+			localizer.doLocalization(30);
+			pause();
+			USS.setParameters(10, 15,15,90, 0);
+			nav.part2();
+		}
 		
 		
 		}catch(IllegalArgumentException e){

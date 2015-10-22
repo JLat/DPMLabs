@@ -14,6 +14,7 @@ public class Claw {
 		this.isOpen = true;
 	}
 
+	//Close and hold onto object
 	public void grab() {
 		motor.resetTachoCount();
 		while (!motor.isStalled()) {
@@ -24,10 +25,12 @@ public class Claw {
 		isOpen = false;
 	}
 
-	public void partialOpen(){
+	//partially open claw to help grab object
+	public void partialClose(){
 		this.motor.rotate(-250);
 	}
 	
+	//Open claw
 	public void open() {
 		this.motor.resetTachoCount();
 		while (!motor.isStalled()) {
