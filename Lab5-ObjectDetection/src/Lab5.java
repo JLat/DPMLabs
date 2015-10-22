@@ -34,8 +34,8 @@ public class Lab5 {
 		Navigation nav = new Navigation(odo,scanner, LCD);
 		
 		
-		USLocalizer localizer = new USLocalizer(nav, odo, USS, LCD);
-		//localizer.doLocalization(40);
+		USLocalizer2 localizer = new USLocalizer2(nav, odo, USS, LCD);
+		//localizer.doLocalization(30);
 		//pause();
 		
 		

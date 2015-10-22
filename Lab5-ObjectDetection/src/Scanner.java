@@ -81,6 +81,7 @@ public class Scanner{
 	}
 	
 	public void scan(){
+		
 		this.blockDetected=false;
 		this.blueBlockDetected=false;
 		turnTo(-80,false);

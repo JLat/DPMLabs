@@ -24,6 +24,10 @@ public class Claw {
 		isOpen = false;
 	}
 
+	public void partialOpen(){
+		this.motor.rotate(-250);
+	}
+	
 	public void open() {
 		this.motor.resetTachoCount();
 		while (!motor.isStalled()) {
