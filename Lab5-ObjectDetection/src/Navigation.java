@@ -133,26 +133,27 @@ public class Navigation {
 
 	// Part 2 of the lab, finding, obtaining and delivering blue block
 	public void part2() {
-
+		
 		// Navigate board and located locate styrofoam block
 		boolean check = searchForObject();
-		scanner.turnTo(0, false);
 
-		LCD.addInfo(check ? "Yes" : "No");
+
+		LCD.addInfo(check ? "BLUE BLOCK" : "NO BLOCK");
 		Lab5.pause();
-
+		scanner.turnTo(0, false);
+		
 		// Block not found
 		if (!check) {
 			LocalEV3.get().getAudio().systemSound(2);
 			System.exit(0);
 		}
-
-		// TODO: Implement grabbing and taking block to finish
+		
 		// Grab object
 		grabBlock();
 
 		// Travel to top right corner
 		travelTo(75, 75);
+		turnTo(225,true);
 
 		// Drop off block
 		dropBlock();
@@ -178,7 +179,7 @@ public class Navigation {
 			int distanceThreshold = getDistanceThreshold(odometer.getAng());
 			if (scanner.seesObject(distanceThreshold)) {
 				setSpeeds(0, 0);
-				turnTo(odometer.getAng() + 10, true);
+				turnTo(odometer.getAng() + 15, true);
 				double tempangle = odometer.getAng();
 
 				// If block is a blue block exit method and return true
@@ -223,7 +224,7 @@ public class Navigation {
 		LCD.addInfo("Behind");
 		if (angle == -1) { // NO BLOCK WAS FOUND
 			return false;
-		} else if (angle < 25 || angle > 315) {
+		} else if (angle < 45 || angle > 315) {
 			travelTo(20, 50);
 			turnTo(0, true);
 			

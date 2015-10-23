@@ -1,8 +1,6 @@
 import lejos.hardware.ev3.LocalEV3;
 
-
 //Falling edge localization from Lab 4
-
 
 public class USLocalizer2 {
 	public static float ROTATION_SPEED = 60;
@@ -22,77 +20,58 @@ public class USLocalizer2 {
 	}
 
 	public void doLocalization(int Cap) {
-		
-		
+
 		distanceCap = Cap;
 		double[] pos = new double[3];
 		double angleA, angleB, delta;
 
-			// rotate the robot until it sees no wall
-			rotateUntilOpen("right");
+		// rotate the robot until it sees no wall
+		rotateUntilOpen("right");
 
-			rotateUntilWall("right");
-			// a wall was observed.
+		rotateUntilWall("right");
+		// a wall was observed.
 
-			// stop the motors and play a sound.
-			nav.setSpeeds(0, 0);
-			LocalEV3.get().getAudio().systemSound(0);
-			// latch the angle
-			angleA = odo.getAng();
+		// stop the motors and play a sound.
+		nav.setSpeeds(0, 0);
+		LocalEV3.get().getAudio().systemSound(0);
+		// latch the angle
+		angleA = odo.getAng();
 
-			// add the angle info on the screen.
-			this.lcd.addInfo("angleA: ", angleA);
+		// add the angle info on the screen.
+		this.lcd.addInfo("angleA: ", angleA);
 
-			// switch direction and rotate until it sees no wall
-			rotateUntilOpen("left");
+		// switch direction and rotate until it sees no wall
+		rotateUntilOpen("left");
 
-			// keep rotating until the robot sees a wall, then latch the angle
-			rotateUntilWall("left");
+		// keep rotating until the robot sees a wall, then latch the angle
+		rotateUntilWall("left");
 
-			nav.setSpeeds(0, 0);
-			LocalEV3.get().getAudio().systemSound(0);
-			angleB = odo.getAng();
+		nav.setSpeeds(0, 0);
+		LocalEV3.get().getAudio().systemSound(0);
+		angleB = odo.getAng();
 
-			// add the value of the angle to the LCD.
-			this.lcd.addInfo("angleB: ", angleB);
-			if (angleA < angleB) {
-				delta = 40.0 - (angleB + angleA) / 2;
-			} else {
-				// (angleA>angleB)
-				delta = 224.0 - (angleB + angleA) / 2;
-			}
-
+		// add the value of the angle to the LCD.
+		this.lcd.addInfo("angleB: ", angleB);
+		if (angleA < angleB) {
+			delta = 40.0 - (angleB + angleA) / 2;
+		} else {
+			// (angleA>angleB)
+			delta = 224.0 - (angleB + angleA) / 2;
+		}
 
 		// current odometer heading - delta = real current heading
 		// hence, by turning to theta-delta, we are actually turning to theta.
 
-		nav.turnTo(180 - delta, true);
-		// clear the recent list of the uss sensor, and wait until the
-		// list is full again to latch the distance towards the wall.
-		uss.clear();
-		while (!uss.isFull()) {
-		}
-		double distanceToLeftWall = uss.getProcessedDistance();
-		LocalEV3.get().getAudio().systemSound(0);
-		this.lcd.addInfo("Dleft: ", distanceToLeftWall);
-
-		// turn to face back wall.
+		
+	
 		nav.turnTo(270 - delta, true);
-		uss.clear();
-		while (!uss.isFull()) {
-		}
-		double distanceToBackWall = uss.getProcessedDistance();
-		LocalEV3.get().getAudio().systemSound(0);
-		this.lcd.addInfo("Dback: ", distanceToBackWall);
-
-		// set the new position.
-		pos[0] = (-26.5 + distanceToLeftWall);
-		pos[1] = (-26.5 + distanceToBackWall);
-		//Offset because of error
+		pos[0] = 0;
+		pos[1] = 0;
+		// Offset because of error
 		pos[2] = 270 - 7;
 
 		// update the odometer position
-		odo.setPosition(pos, new boolean[] {false,false, true });
+		odo.setPosition(pos, new boolean[] { false, false, true });
 
 		// turn towards 0 degrees (parallel to back wall)
 		nav.turnTo(0, true);
@@ -137,6 +116,5 @@ public class USLocalizer2 {
 			distance = uss.getProcessedDistance();
 		}
 	}
-
 
 }
