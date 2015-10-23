@@ -138,8 +138,8 @@ public class Navigation {
 		boolean check = searchForObject();
 
 		LCD.addInfo(check ? "BLUE BLOCK" : "NO BLOCK");
-		Lab5.pause();
-		scanner.turnTo(0, false);
+		
+		
 
 		// Block not found
 		if (!check) {
@@ -151,12 +151,12 @@ public class Navigation {
 		grabBlock();
 
 		// Travel to top right corner
-		travelTo(75, 75);
-		turnTo(225, true);
+		travelTo(65, 65);
+		turnTo(45, true);
 
 		// Drop off block
 		dropBlock();
-
+		scanner.turnTo(0, false);
 		LCD.addInfo("Complete");
 		Lab5.pause();
 	}
@@ -169,7 +169,7 @@ public class Navigation {
 		turnTo(310, true);
 		LCD.addInfo("D: ");
 
-		// Rotate robot will searching for block
+		// Rotate robot while searching for blocks
 		while (odometer.getAng() < 150 || odometer.getAng() > 200) {
 			setSpeeds(-SLOW / 2, SLOW / 2);
 
@@ -272,14 +272,19 @@ public class Navigation {
 		double distanceToBlock = scanner.getDistance();
 
 		// Move towards the block
-		goForward(distanceToBlock / 2);
+		while (scanner.getDistance() > 10){
+			setSpeeds(SLOW,SLOW);
+		}
+		setSpeeds(0,0);
 
 		// Scan for block, move forward after each scan if no block is found
-		scanner.USS.setParameters(10, 10, 15, 50, 0);
+		scanner.USS.setParameters(5, 10, 15, 50, 0);
 		scanner.scan();
 		while (!scanner.blockDetected()) {
 			goForward(4);
 			scanner.scan();
+			if (odometer.getX() > 80  || odometer.getY() > 80)
+				break;
 		}
 		scanner.USS.setParameters(10, 15, 15, 90, 0);
 

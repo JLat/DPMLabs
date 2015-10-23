@@ -44,7 +44,6 @@ public class Lab5 {
 			} else {
 				USS.setParameters(10, 10, 15, 50, 0);
 				localizer.doLocalization(30);
-				pause();
 				USS.setParameters(10, 15, 15, 90, 0);
 				nav.part2();
 			}

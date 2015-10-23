@@ -24,6 +24,7 @@ public class USLocalizer2 {
 		distanceCap = Cap;
 		double[] pos = new double[3];
 		double angleA, angleB, delta;
+		lcd.addInfo("D: ");
 
 		// rotate the robot until it sees no wall
 		rotateUntilOpen("right");
@@ -49,32 +50,38 @@ public class USLocalizer2 {
 		nav.setSpeeds(0, 0);
 		LocalEV3.get().getAudio().systemSound(0);
 		angleB = odo.getAng();
-
+		
 		// add the value of the angle to the LCD.
-		this.lcd.addInfo("angleB: ", angleB);
+		this.lcd.addInfo("angl2: ", angleB);
 		if (angleA < angleB) {
-			delta = 40.0 - (angleB + angleA) / 2  - 180;
+			lcd.addInfo("A < B");
+			delta = 46.0 - (angleB + angleA) / 2;
+			if (Math.abs(angleA - angleB) < 100)
+				delta -= 180;
+				
 		} else {
 			// (angleA>angleB)
+			lcd.addInfo("A>B");
 			delta = 224.0 - (angleB + angleA) / 2;
+			if (Math.abs(angleA - angleB)> 270)
+				delta -= 180;
 		}
 
 		// current odometer heading - delta = real current heading
 		// hence, by turning to theta-delta, we are actually turning to theta.
 
 		
-	
-		nav.turnTo(270 - delta, true);
 		pos[0] = 0;
 		pos[1] = 0;
 		// Offset because of error
-		pos[2] = 270 - 7;
+		pos[2] = odo.getAng() + delta;
 
 		// update the odometer position
 		odo.setPosition(pos, new boolean[] { false, false, true });
 
 		// turn towards 0 degrees (parallel to back wall)
 		nav.turnTo(0, true);
+		Lab5.pause();
 		this.lcd.clearAdditionalInfo();
 
 	}
