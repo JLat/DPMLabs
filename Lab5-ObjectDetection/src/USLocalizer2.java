@@ -53,7 +53,7 @@ public class USLocalizer2 {
 		// add the value of the angle to the LCD.
 		this.lcd.addInfo("angleB: ", angleB);
 		if (angleA < angleB) {
-			delta = 40.0 - (angleB + angleA) / 2;
+			delta = 40.0 - (angleB + angleA) / 2  - 180;
 		} else {
 			// (angleA>angleB)
 			delta = 224.0 - (angleB + angleA) / 2;

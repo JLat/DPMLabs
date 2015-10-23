@@ -48,7 +48,7 @@ public class Lab5 {
 				USS.setParameters(10, 15, 15, 90, 0);
 				nav.part2();
 			}
-
+			// To avoid US Sensor error to crash brick
 		} catch (IllegalArgumentException e) {
 			System.exit(0);
 		}
@@ -76,10 +76,12 @@ public class Lab5 {
 		LCD.addInfo("D: ");
 
 		USS.setParameters(5, 15, 15, 50, 0);
+		//Wait until open space
 		while (USS.getProcessedDistance() < 30)
 			;
 
-		for (int i = 0; i < 2; i++) {
+		// 5 tests
+		for (int i = 0; i < 5; i++) {
 			LCD.clearAdditionalInfo();
 			LCD.addInfo("D: ");
 
@@ -88,6 +90,7 @@ public class Lab5 {
 				;
 
 			scanner.scan();
+			//Scan for block
 			if (scanner.blockDetected()) {
 				LCD.addInfo("Block Detected");
 				if (scanner.blueBlockDetected()) {
@@ -98,6 +101,7 @@ public class Lab5 {
 			} else {
 				LCD.addInfo("No Block");
 			}
+			//Wait until block is removed
 			while (USS.getProcessedDistance() < 20)
 				;
 		}
